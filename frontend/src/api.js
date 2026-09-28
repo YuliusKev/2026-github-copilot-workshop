@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = (typeof import !== 'undefined' && import.meta && import.meta.env && import.meta.env.VITE_API_BASE_URL) ? import.meta.env.VITE_API_BASE_URL : 'http://localhost:3000';
 
 async function apiFetch(path, options = {}) {
   const headers = { ...(options.headers || {}) };
@@ -51,4 +51,16 @@ export const api = {
       method: 'POST',
     }),
   getRequisitionOpenLines: (id) => apiFetch(`/api/requisitions/${id}/open-lines`),
+  listPurchaseOrders: () => apiFetch('/api/purchase-orders'),
+  createPurchaseOrder: (payload) =>
+    apiFetch('/api/purchase-orders', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  submitPurchaseOrder: (id) =>
+    apiFetch(`/api/purchase-orders/${id}/submit`, {
+      method: 'POST',
+    }),
+  getPurchaseOrder: (id) => apiFetch(`/api/purchase-orders/${id}`),
+  getOpenPoLines: (id) => apiFetch(`/api/purchase-orders/${id}/open-lines`),
 };

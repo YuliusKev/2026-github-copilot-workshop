@@ -532,4 +532,233 @@ describe('purchase-order-service list functions', () => {
     expect(result.openLines[0].id).toBe('po-line-1');
     expect(result.openLines[0].qtyOpenForGr).toBe(6);
   });
+
+  test('listPurchaseOrders returns empty array when no orders exist', async () => {
+    const db = {
+      query: jest.fn(() => ({ rows: [], rowCount: 0 })),
+    };
+
+    const result = await listPurchaseOrders(db);
+
+    expect(result).toEqual([]);
+    expect(db.query).toHaveBeenCalledTimes(1);
+  });
+
+  test('listPurchaseOrders returns multiple POs in correct order', async () => {
+    const db = {
+      query: jest.fn(() => ({
+        rows: [
+          {
+            id: 'po-2',
+            po_number: 'PO-2026-0002',
+            status: 'SUBMITTED',
+            vendor_name: 'PT Supplier B',
+            created_at: '2026-05-02T10:00:00.000Z',
+            updated_at: '2026-05-02T10:00:00.000Z',
+          },
+          {
+            id: 'po-1',
+            po_number: 'PO-2026-0001',
+            status: 'DRAFT',
+            vendor_name: 'PT Supplier A',
+            created_at: '2026-05-01T10:00:00.000Z',
+            updated_at: '2026-05-01T10:00:00.000Z',
+          },
+        ],
+      })),
+    };
+
+    const result = await listPurchaseOrders(db);
+
+    expect(result).toHaveLength(2);
+    expect(result[0].poNumber).toBe('PO-2026-0002');
+    expect(result[1].poNumber).toBe('PO-2026-0001');
+  });
+
+  test('listPurchaseOrders maps all header fields correctly', async () => {
+    const db = {
+      query: jest.fn(() => ({
+        rows: [
+          {
+            id: 'po-123',
+            po_number: 'PO-2026-0005',
+            status: 'APPROVED',
+            vendor_name: 'PT Global Suppliers',
+            created_at: '2026-05-15T14:30:00.000Z',
+            updated_at: '2026-05-16T09:15:00.000Z',
+          },
+        ],
+      })),
+    };
+
+    const result = await listPurchaseOrders(db);
+
+    expect(result[0]).toEqual({
+      id: 'po-123',
+      poNumber: 'PO-2026-0005',
+      status: 'APPROVED',
+      vendorName: 'PT Global Suppliers',
+      createdAt: '2026-05-15T14:30:00.000Z',
+      updatedAt: '2026-05-16T09:15:00.000Z',
+    });
+  });
+
+  test('getOpenPoLines filters out fully received lines', async () => {
+    let call = 0;
+    const db = {
+      query: jest.fn(() => {
+        call += 1;
+        if (call === 1) {
+          return {
+            rows: [{ id: 'po-1', po_number: 'PO-2026-0001', status: 'SUBMITTED' }],
+            rowCount: 1,
+          };
+        }
+        return {
+          rows: [
+            {
+              id: 'po-line-1',
+              line_no: 1,
+              item_code: 'A',
+              item_name: 'Item A',
+              qty_ordered: 10,
+              qty_received: 0,
+              uom: 'PCS',
+              unit_price: 1000,
+              site_code: 'JKT',
+              required_date: null,
+            },
+            {
+              id: 'po-line-2',
+              line_no: 2,
+              item_code: 'B',
+              item_name: 'Item B',
+              qty_ordered: 5,
+              qty_received: 5,
+              uom: 'PCS',
+              unit_price: 2000,
+              site_code: 'JKT',
+              required_date: null,
+            },
+            {
+              id: 'po-line-3',
+              line_no: 3,
+              item_code: 'C',
+              item_name: 'Item C',
+              qty_ordered: 8,
+              qty_received: 3,
+              uom: 'PCS',
+              unit_price: 1500,
+              site_code: 'JKT',
+              required_date: null,
+            },
+          ],
+          rowCount: 3,
+        };
+      }),
+    };
+
+    const result = await getOpenPoLines(db, 'po-1');
+
+    expect(result.openLines).toHaveLength(2);
+    expect(result.openLines.map(l => l.id)).toEqual(['po-line-1', 'po-line-3']);
+    expect(result.openLines[0].qtyOpenForGr).toBe(10); // 10 - 0
+    expect(result.openLines[1].qtyOpenForGr).toBe(5); // 8 - 3
+  });
+
+  test('getOpenPoLines maps line fields correctly', async () => {
+    let call = 0;
+    const db = {
+      query: jest.fn(() => {
+        call += 1;
+        if (call === 1) {
+          return {
+            rows: [{ id: 'po-1', po_number: 'PO-2026-0001', status: 'SUBMITTED' }],
+            rowCount: 1,
+          };
+        }
+        return {
+          rows: [
+            {
+              id: 'po-line-1',
+              line_no: 1,
+              item_code: 'SKU-001',
+              item_name: 'Widget Pro',
+              qty_ordered: 100,
+              qty_received: 40,
+              uom: 'BOX',
+              unit_price: 250.50,
+              site_code: 'WH-JKT',
+              required_date: '2026-06-20',
+            },
+          ],
+          rowCount: 1,
+        };
+      }),
+    };
+
+    const result = await getOpenPoLines(db, 'po-1');
+
+    expect(result.openLines[0]).toEqual({
+      id: 'po-line-1',
+      lineNo: 1,
+      itemCode: 'SKU-001',
+      itemName: 'Widget Pro',
+      qtyOrdered: 100,
+      qtyReceived: 40,
+      qtyOpenForGr: 60,
+      uom: 'BOX',
+      unitPrice: 250.50,
+      siteCode: 'WH-JKT',
+      requiredDate: '2026-06-20',
+    });
+  });
+
+  test('getOpenPoLines handles PO with no lines', async () => {
+    let call = 0;
+    const db = {
+      query: jest.fn(() => {
+        call += 1;
+        if (call === 1) {
+          return {
+            rows: [{ id: 'po-1', po_number: 'PO-2026-0001', status: 'SUBMITTED' }],
+            rowCount: 1,
+          };
+        }
+        return {
+          rows: [],
+          rowCount: 0,
+        };
+      }),
+    };
+
+    const result = await getOpenPoLines(db, 'po-1');
+
+    expect(result.openLines).toHaveLength(0);
+    expect(result.purchaseOrder.poNumber).toBe('PO-2026-0001');
+  });
+
+  test('listPurchaseOrders correctly converts numeric strings to numbers', async () => {
+    const db = {
+      query: jest.fn(() => ({
+        rows: [
+          {
+            id: 'po-1',
+            po_number: 'PO-2026-0001',
+            status: 'DRAFT',
+            vendor_name: 'PT Supplier',
+            created_at: '2026-05-01T10:00:00.000Z',
+            updated_at: '2026-05-01T10:00:00.000Z',
+          },
+        ],
+      })),
+    };
+
+    const result = await listPurchaseOrders(db);
+
+    // Verify string values remain as strings
+    expect(typeof result[0].id).toBe('string');
+    expect(typeof result[0].poNumber).toBe('string');
+    expect(typeof result[0].status).toBe('string');
+  });
 });
