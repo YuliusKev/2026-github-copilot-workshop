@@ -81,15 +81,17 @@ describe('POListPage', () => {
     const mockItems = [
       {
         id: 'po-1',
-        supplierName: 'PT Supplier Jaya',
+        poNumber: 'PO-2026-0001',
+        vendorName: 'PT Supplier Jaya',
         status: 'DRAFT',
-        total: 1500.50,
+        createdAt: '2026-09-01T00:00:00.000Z',
       },
       {
         id: 'po-2',
-        supplierName: 'Tech Hardware Ltd',
+        poNumber: 'PO-2026-0002',
+        vendorName: 'Tech Hardware Ltd',
         status: 'SUBMITTED',
-        total: 2500.00,
+        createdAt: '2026-09-02T00:00:00.000Z',
       },
     ];
 
@@ -110,10 +112,9 @@ describe('POListPage', () => {
 
     const rows = wrapper.findAll('tbody tr');
     expect(rows).toHaveLength(2);
-    expect(rows[0].text()).toContain('po-1');
+    expect(rows[0].text()).toContain('PO-2026-0001');
     expect(rows[0].text()).toContain('PT Supplier Jaya');
-    expect(rows[0].text()).toContain('1500.50');
-    expect(rows[1].text()).toContain('po-2');
+    expect(rows[1].text()).toContain('PO-2026-0002');
     expect(rows[1].text()).toContain('Tech Hardware Ltd');
   });
 
@@ -121,9 +122,10 @@ describe('POListPage', () => {
     const mockItems = [
       {
         id: 'po-1',
-        supplierName: 'PT Supplier Jaya',
+        poNumber: 'PO-2026-0001',
+        vendorName: 'PT Supplier Jaya',
         status: 'SUBMITTED',
-        total: 1500.50,
+        createdAt: '2026-09-01T00:00:00.000Z',
       },
     ];
 
@@ -144,45 +146,17 @@ describe('POListPage', () => {
 
     const badge = wrapper.find('.status-badge');
     expect(badge.text()).toBe('SUBMITTED');
-    expect(badge.classes()).toContain('status-submitted');
-  });
-
-  it('formats monetary values with two decimal places', async () => {
-    const mockItems = [
-      {
-        id: 'po-1',
-        supplierName: 'PT Supplier Jaya',
-        status: 'DRAFT',
-        total: 1500,
-      },
-    ];
-
-    mockApi.listPurchaseOrders.mockResolvedValue({ items: mockItems });
-    
-    const mod = await import('../POListPage.vue');
-    const Component = mod.default;
-    
-    const wrapper = mount(Component, {
-      global: {
-        components: { RouterLink },
-        stubs: { RouterLink: true },
-      },
-    });
-
-    await wrapper.vm.$nextTick();
-    await new Promise(resolve => setTimeout(resolve, 10));
-
-    const row = wrapper.find('tbody tr');
-    expect(row.text()).toContain('$1500.00');
+    expect(badge.classes()).toContain('submitted');
   });
 
   it('provides navigation links to PO detail pages', async () => {
     const mockItems = [
       {
         id: 'po-123',
-        supplierName: 'PT Supplier Jaya',
+        poNumber: 'PO-2026-0001',
+        vendorName: 'PT Supplier Jaya',
         status: 'DRAFT',
-        total: 1500.50,
+        createdAt: '2026-09-01T00:00:00.000Z',
       },
     ];
 
@@ -228,7 +202,17 @@ describe('POListPage', () => {
   });
 
   it('renders correct table headers', async () => {
-    mockApi.listPurchaseOrders.mockResolvedValue({ items: [{ id: 'po-1', supplierName: 'Acme', status: 'DRAFT', total: 10 }] });
+    mockApi.listPurchaseOrders.mockResolvedValue({
+      items: [
+        {
+          id: 'po-1',
+          poNumber: 'PO-2026-0001',
+          vendorName: 'Acme',
+          status: 'DRAFT',
+          createdAt: '2026-09-01T00:00:00.000Z',
+        },
+      ],
+    });
     
     const mod = await import('../POListPage.vue');
     const Component = mod.default;
@@ -245,10 +229,29 @@ describe('POListPage', () => {
 
     const headers = wrapper.findAll('thead th');
     const headerTexts = headers.map(h => h.text());
-    expect(headerTexts).toContain('PO ID');
-    expect(headerTexts).toContain('Supplier');
+    expect(headerTexts).toContain('PO Number');
+    expect(headerTexts).toContain('Vendor');
     expect(headerTexts).toContain('Status');
-    expect(headerTexts).toContain('Total');
+    expect(headerTexts).toContain('Created At');
     expect(headerTexts).toContain('Action');
+  });
+
+  it('displays error message when API fails', async () => {
+    mockApi.listPurchaseOrders.mockRejectedValue(new Error('Network error'));
+
+    const mod = await import('../POListPage.vue');
+    const Component = mod.default;
+
+    const wrapper = mount(Component, {
+      global: {
+        components: { RouterLink },
+        stubs: { RouterLink: true },
+      },
+    });
+
+    await wrapper.vm.$nextTick();
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    expect(wrapper.text()).toContain('Network error');
   });
 });

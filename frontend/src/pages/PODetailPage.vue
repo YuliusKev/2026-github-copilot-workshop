@@ -1,307 +1,138 @@
 <template>
   <section>
+    <!-- Page header -->
     <div class="page-header">
       <div class="page-header-left">
         <RouterLink to="/purchase-orders" class="back-btn" title="Back to list">&#8592;</RouterLink>
         <div>
           <h2>Purchase Order Detail</h2>
-          <p class="muted">View PO information and allocations</p>
+          <p class="muted">{{ po?.poNumber || '-' }} &mdash; Purchase Order information detail</p>
+        </div>
+      </div>
+      <div class="btn-group" v-if="po">
+        <button v-if="po.status === 'DRAFT'" class="btn btn-primary" @click="submitPO">Submit PO</button>
+      </div>
+    </div>
+
+    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+
+    <!-- PO Header card -->
+    <div class="card-panel" v-if="po">
+      <p class="form-section-title">PO Header</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>PO Number</label>
+          <input :value="po.poNumber" disabled />
+        </div>
+        <div class="form-group">
+          <label>Vendor</label>
+          <input :value="po.vendorName" disabled />
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <span class="status-badge" :class="po.status.toLowerCase()">{{ po.status }}</span>
+        </div>
+        <div class="form-group">
+          <label>Total</label>
+          <input :value="formatPrice(total)" disabled />
         </div>
       </div>
     </div>
 
-    <div v-if="po" class="card-panel">
-      <div class="detail-row">
-        <div class="detail-field">
-          <span class="label">PO ID</span>
-          <span class="value">{{ po.id }}</span>
-        </div>
-        <div class="detail-field">
-          <span class="label">Supplier</span>
-          <span class="value">{{ po.supplierName }}</span>
-        </div>
-        <div class="detail-field">
-          <span class="label">Status</span>
-          <span class="value">
-            <span class="status-badge" :class="`status-${po.status.toLowerCase()}`">{{ po.status }}</span>
-          </span>
-        </div>
-      </div>
-
-      <div class="detail-row">
-        <div class="detail-field full">
-          <span class="label">Delivery Address</span>
-          <span class="value">{{ po.deliveryAddress }}</span>
-        </div>
-      </div>
-
-      <div class="detail-row">
-        <div class="detail-field">
-          <span class="label">Delivery Date</span>
-          <span class="value">{{ po.deliveryDate }}</span>
-        </div>
-        <div class="detail-field">
-          <span class="label">Total</span>
-          <span class="value">${{ po.total.toFixed(2) }}</span>
-        </div>
-      </div>
-
-      <div v-if="po.notes" class="detail-row">
-        <div class="detail-field full">
-          <span class="label">Notes</span>
-          <span class="value">{{ po.notes }}</span>
-        </div>
-      </div>
-    </div>
-
-    <div v-if="po" class="card-panel">
-      <p class="section-title">Line Allocations</p>
+    <!-- PO Lines card -->
+    <div class="card-panel" v-if="po">
+      <p class="form-section-title">PO Lines</p>
       <table v-if="po.lines.length > 0">
         <thead>
           <tr>
-            <th>Description</th>
-            <th style="width: 100px">Unit Price</th>
-            <th style="width: 100px">Qty Allocated</th>
-            <th style="width: 120px">Line Total</th>
+            <th style="width: 50px">Line</th>
+            <th>Item Code</th>
+            <th>Item Name</th>
+            <th>Qty Ordered</th>
+            <th>UOM</th>
+            <th>Unit Price</th>
+            <th>Site</th>
+            <th>Required Date</th>
+            <th>Line Total</th>
+            <th>Allocated From</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(line, idx) in po.lines" :key="idx">
-            <td>{{ line.description }}</td>
-            <td class="text-right">${{ line.unitPrice.toFixed(2) }}</td>
-            <td class="text-right">{{ line.allocatedQty }}</td>
-            <td class="text-right"><strong>${{ (line.unitPrice * line.allocatedQty).toFixed(2) }}</strong></td>
+          <tr v-for="line in po.lines" :key="line.id">
+            <td>{{ line.lineNo }}</td>
+            <td>{{ line.itemCode }}</td>
+            <td>{{ line.itemName }}</td>
+            <td>{{ line.qtyOrdered }}</td>
+            <td>{{ line.uom }}</td>
+            <td class="text-right">{{ formatPrice(line.unitPrice) }}</td>
+            <td>{{ line.siteCode }}</td>
+            <td>{{ line.requiredDate || '-' }}</td>
+            <td class="text-right"><strong>{{ formatPrice(line.unitPrice * line.qtyOrdered) }}</strong></td>
+            <td>{{ formatAllocations(line.allocations) }}</td>
           </tr>
         </tbody>
       </table>
+      <p v-else class="empty-message">No lines on this purchase order.</p>
     </div>
 
     <div class="btn-group">
       <RouterLink to="/purchase-orders" class="btn btn-outline">Back to List</RouterLink>
-      <button v-if="po && po.status === 'DRAFT'" class="btn btn-primary" @click="submitPO">Submit PO</button>
     </div>
   </section>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
+import { api } from '../api';
 
 const route = useRoute();
-const poId = route.params.id;
+const po = ref(null);
+const errorMessage = ref('');
 
-// Placeholder data - replace with API call in next phase
-const po = ref({
-  id: `PO-${poId}`,
-  supplierName: 'Office Supplies Inc.',
-  poTitle: 'Office Restocking',
-  deliveryAddress: '123 Business St, Suite 100',
-  deliveryDate: '2026-10-15',
-  notes: 'Please prioritize delivery',
-  status: 'DRAFT',
-  total: 250.5,
-  lines: [
-    {
-      description: 'Paper A4 500 sheets',
-      unitPrice: 5.5,
-      allocatedQty: 50,
-    },
-    {
-      description: 'Ink Cartridge Black',
-      unitPrice: 25.0,
-      allocatedQty: 5,
-    },
-  ],
-});
+const total = computed(() =>
+  (po.value?.lines || []).reduce((sum, line) => sum + line.unitPrice * line.qtyOrdered, 0)
+);
 
-function submitPO() {
-  // TODO: Replace with actual API call in next phase
-  alert('Submit functionality coming soon');
+function formatPrice(value) {
+  return typeof value === 'number' ? `$${value.toFixed(2)}` : '$0.00';
 }
+
+function formatAllocations(allocations) {
+  if (!allocations || allocations.length === 0) return '-';
+  return allocations.map((a) => `${a.prNumber} (${a.allocatedQty})`).join(', ');
+}
+
+async function load() {
+  errorMessage.value = '';
+  try {
+    po.value = await api.getPurchaseOrder(route.params.id);
+  } catch (error) {
+    errorMessage.value = error.message;
+  }
+}
+
+async function submitPO() {
+  try {
+    po.value = await api.submitPurchaseOrder(route.params.id);
+  } catch (error) {
+    errorMessage.value = error.message;
+  }
+}
+
+onMounted(load);
 </script>
 
 <style scoped>
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
-}
-
-.page-header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.page-header h2 {
-  font-size: 24px;
-  font-weight: 600;
-  margin: 0 0 4px;
-}
-
-.muted {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.back-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--primary);
-  color: var(--white);
-  border: none;
-  cursor: pointer;
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1;
-  flex-shrink: 0;
-  transition: opacity 0.15s;
-  text-decoration: none;
-}
-
-.back-btn:hover {
-  opacity: 0.85;
-}
-
-.section-title {
-  font-size: 14px;
-  font-weight: 600;
-  margin: 0 0 16px;
-  color: var(--text);
-}
-
-.detail-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 16px;
-}
-
-.detail-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.detail-field.full {
-  grid-column: 1 / -1;
-}
-
-.detail-field .label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.detail-field .value {
-  font-size: 14px;
-  color: var(--text);
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  width: fit-content;
-}
-
-.status-draft {
-  background: #fff3e0;
-  color: #e65100;
-}
-
-.status-submitted {
-  background: #e3f2fd;
-  color: #1565c0;
-}
-
-.status-approved {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--white);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-table thead {
-  background: var(--table-header);
-}
-
-table th {
-  padding: 12px;
-  text-align: left;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-table td {
-  padding: 12px;
-  font-size: 13px;
-  color: var(--text);
-  border-bottom: 1px solid var(--border);
-}
-
-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
 .text-right {
   text-align: right;
 }
 
-.btn-group {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  margin-top: 24px;
-}
-
-.btn {
-  padding: 10px 24px;
-  font-size: 14px;
-  font-weight: 600;
-  border: none;
-  border-radius: var(--radius-btn);
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s;
-}
-
-.btn-primary {
-  background: var(--primary);
-  color: var(--white);
-}
-
-.btn-primary:hover {
-  opacity: 0.9;
-}
-
-.btn-outline {
-  background: var(--white);
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-
-.btn-outline:hover {
-  background: var(--bg);
+.empty-message {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
 }
 </style>
+

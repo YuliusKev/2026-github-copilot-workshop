@@ -2,6 +2,7 @@
   <section>
     <div class="page-header">
       <div class="page-header-left">
+        <RouterLink to="/" class="back-btn" title="Back to Dashboard">&#8592;</RouterLink>
         <div>
           <h2>Purchase Orders</h2>
           <p class="muted">View and manage purchase orders</p>
@@ -16,19 +17,19 @@
       <table v-if="purchaseOrders.length > 0">
         <thead>
           <tr>
-            <th>PO ID</th>
-            <th>Supplier</th>
+            <th>PO Number</th>
+            <th>Vendor</th>
             <th>Status</th>
-            <th>Total</th>
+            <th>Created At</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="po in purchaseOrders" :key="po.id">
-            <td><strong>{{ po.id }}</strong></td>
-            <td>{{ po.supplierName }}</td>
-            <td><span class="status-badge" :class="`status-${po.status.toLowerCase()}`">{{ po.status }}</span></td>
-            <td class="text-right">${{ po.total.toFixed(2) }}</td>
+            <td><strong>{{ po.poNumber }}</strong></td>
+            <td>{{ po.vendorName }}</td>
+            <td><span class="status-badge" :class="po.status.toLowerCase()">{{ po.status }}</span></td>
+            <td>{{ formatDate(po.createdAt) }}</td>
             <td><RouterLink :to="`/purchase-orders/${po.id}`" class="link">View</RouterLink></td>
           </tr>
         </tbody>
@@ -46,6 +47,10 @@ import { api } from '../api';
 const purchaseOrders = ref([]);
 const errorMessage = ref('');
 
+function formatDate(value) {
+  return value ? new Date(value).toLocaleDateString() : '-';
+}
+
 onMounted(async () => {
   try {
     const payload = await api.listPurchaseOrders();
@@ -57,114 +62,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.page-header-left {
-  flex: 1;
-}
-
-.page-header h2 {
-  font-size: 24px;
-  font-weight: 600;
-  margin: 0 0 4px;
-}
-
-.muted {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.btn {
-  padding: 10px 24px;
-  font-size: 14px;
-  font-weight: 600;
-  border: none;
-  border-radius: var(--radius-btn);
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s;
-}
-
-.btn-primary {
-  background: var(--primary);
-  color: var(--white);
-}
-
-.btn-primary:hover {
-  opacity: 0.9;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--white);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-table thead {
-  background: var(--table-header);
-}
-
-table th {
-  padding: 12px;
-  text-align: left;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-table td {
-  padding: 12px;
-  font-size: 13px;
-  color: var(--text);
-  border-bottom: 1px solid var(--border);
-}
-
-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-table tbody tr:hover {
-  background: rgba(255, 64, 129, 0.02);
-}
-
-.text-right {
-  text-align: right;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.status-draft {
-  background: #fff3e0;
-  color: #e65100;
-}
-
-.status-submitted {
-  background: #e3f2fd;
-  color: #1565c0;
-}
-
-.status-approved {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
 .empty-message {
   padding: 32px;
   text-align: center;

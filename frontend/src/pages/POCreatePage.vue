@@ -23,60 +23,27 @@
       <!-- Action buttons -->
       <div class="btn-group">
         <RouterLink to="/purchase-orders" class="btn btn-outline">Cancel</RouterLink>
-        <button class="btn btn-primary" type="submit">Create PO</button>
+        <button class="btn btn-primary" type="submit" :disabled="isSubmitting">
+          {{ isSubmitting ? 'Creating...' : 'Create PO' }}
+        </button>
       </div>
     </form>
   </section>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue';
+import { reactive, ref, onMounted, watch } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import POHeaderForm from '../components/POHeaderForm.vue';
 import POLineAllocationTable from '../components/POLineAllocationTable.vue';
+import { api } from '../api';
 
 const router = useRouter();
 const tableRef = ref(null);
 const errorMessage = ref('');
+const isSubmitting = ref(false);
 
-// Placeholder PR data - replace with API call in next phase
-const approvedPrs = ref([
-  {
-    id: 1,
-    title: 'Office Supplies',
-    status: 'APPROVED',
-    lines: [
-      {
-        id: 1,
-        description: 'Paper A4 500 sheets',
-        unitPrice: 5.5,
-        remainingQty: 100,
-        allocatedQty: 0,
-      },
-      {
-        id: 2,
-        description: 'Ink Cartridge Black',
-        unitPrice: 25.0,
-        remainingQty: 50,
-        allocatedQty: 0,
-      },
-    ],
-  },
-  {
-    id: 2,
-    title: 'IT Equipment',
-    status: 'APPROVED',
-    lines: [
-      {
-        id: 3,
-        description: 'USB Cable Type-C',
-        unitPrice: 12.0,
-        remainingQty: 200,
-        allocatedQty: 0,
-      },
-    ],
-  },
-]);
+const approvedPrs = ref([]);
 
 const headerForm = reactive({
   selectedPrId: null,
@@ -89,23 +56,43 @@ const headerForm = reactive({
 
 const allocations = ref([]);
 
-// Watch PR selection to populate allocations
-import { watch } from 'vue';
+onMounted(async () => {
+  try {
+    const { items } = await api.listRequisitions();
+    approvedPrs.value = (items || []).filter((pr) => pr.status === 'APPROVED');
+  } catch (error) {
+    errorMessage.value = error.message;
+  }
+});
+
+// Watch PR selection to load its open lines for allocation
 watch(
   () => headerForm.selectedPrId,
-  (newPrId) => {
-    if (newPrId) {
-      const selectedPr = approvedPrs.value.find((pr) => pr.id === parseInt(newPrId));
-      if (selectedPr) {
-        allocations.value = selectedPr.lines.map((line) => ({
-          ...line,
-          allocatedQty: 0,
-        }));
-      }
-    } else {
-      allocations.value = [];
-    }
+  async (newPrId) => {
     errorMessage.value = '';
+    if (!newPrId) {
+      allocations.value = [];
+      return;
+    }
+
+    try {
+      const { openLines } = await api.getRequisitionOpenLines(newPrId);
+      allocations.value = (openLines || []).map((line) => ({
+        prLineId: line.id,
+        description: `${line.itemCode} - ${line.itemName}`,
+        itemCode: line.itemCode,
+        itemName: line.itemName,
+        uom: line.uom,
+        siteCode: line.siteCode,
+        requiredDate: line.requiredDate,
+        unitPrice: line.estUnitPrice,
+        remainingQty: line.qtyOpenForPo,
+        allocatedQty: 0,
+      }));
+    } catch (error) {
+      allocations.value = [];
+      errorMessage.value = error.message;
+    }
   }
 );
 
@@ -128,33 +115,36 @@ async function handleSubmit() {
     return;
   }
 
-  // Validate allocations
+  // Client-side validation (mirrors server-side over-allocation guard)
   const validation = tableRef.value.validateAllocations();
   if (!validation.valid) {
     errorMessage.value = 'Please fix the allocation errors below';
     return;
   }
 
+  isSubmitting.value = true;
   try {
-    // TODO: Replace with actual API call in next phase
-    // const payload = {
-    //   ...headerForm,
-    //   lines: allocations.value.map((line) => ({
-    //     prLineId: line.id,
-    //     allocatedQty: line.allocatedQty,
-    //   })),
-    // };
-    // const created = await api.createPurchaseOrder(payload);
-    // await router.push(`/purchase-orders/${created.id}`);
+    const payload = {
+      vendorName: headerForm.supplierName.trim(),
+      lines: allocations.value.map((line) => ({
+        prLineId: line.prLineId,
+        itemCode: line.itemCode,
+        itemName: line.itemName,
+        uom: line.uom,
+        siteCode: line.siteCode,
+        qtyOrdered: line.allocatedQty,
+        unitPrice: line.unitPrice,
+        requiredDate: line.requiredDate || undefined,
+      })),
+    };
 
-    // For now, show success and navigate
-    console.log('PO to be created:', {
-      ...headerForm,
-      lines: allocations.value,
-    });
-    await router.push('/purchase-orders');
+    const created = await api.createPurchaseOrder(payload);
+    await router.push(`/purchase-orders/${created.id}`);
   } catch (error) {
+    // Surfaces server-side 422 rule violations (e.g. over-allocation) with their exact message
     errorMessage.value = error.message;
+  } finally {
+    isSubmitting.value = false;
   }
 }
 </script>
@@ -198,6 +188,11 @@ async function handleSubmit() {
 
 .btn-primary:hover {
   opacity: 0.9;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn-outline {
