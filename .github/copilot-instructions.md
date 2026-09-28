@@ -61,3 +61,25 @@ Reference plan: `docs/plan.md`.
 
 ## Workshop-First Principle
 When there is a trade-off between production robustness and workshop clarity, choose workshop clarity.
+
+RTK — Token-Optimized CLI
+
+rtk is a CLI proxy that filters and compresses command outputs, saving 60-90% tokens.
+
+Rule
+
+Always prefix shell commands with rtk:
+
+# Instead of:      Use:
+git status         rtk git status
+git log -10        rtk git log -10
+docker ps          rtk docker ps
+Other examples where you can use rtk:
+
+rtk tree
+rtk ls -la
+rtk read
+rtk grep
+rtk rg
+rtk npm run test
+rtk curl <url>
