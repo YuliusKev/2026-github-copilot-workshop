@@ -1,6 +1,6 @@
 # Project Progress Snapshot
 
-_Last updated: 2026-09-28_
+_Last updated: 2026-09-28 (PO module fully wired and tested)_
 
 This document reflects the **actual current state of the code**, verified by reading source files and running the test suites (not by assumption). Update it whenever module state changes.
 
@@ -10,10 +10,10 @@ This document reflects the **actual current state of the code**, verified by rea
 |---|---|---|---|---|---|---|
 | Home / Dashboard | ✅ | n/a | n/a | ✅ | ✅ (`api.listRequisitions`) | ❌ none exist |
 | Purchase Requisition (PR) | ✅ | ✅ complete | ✅ 41 passing (shared suite) | ✅ | ✅ fully wired | ❌ none exist |
-| Purchase Order (PO) | ✅ | ✅ complete | ✅ (shared suite) | ✅ pages/components exist | ❌ **still placeholder/mock data** | ❌ none exist |
+| Purchase Order (PO) | ✅ | ✅ complete | ✅ (shared suite) | ✅ all pages complete | ✅ **fully wired** | ❌ none exist |
 | Goods Receipt (GR) | ✅ tables only | ❌ not implemented | ❌ | ❌ not implemented | ❌ | ❌ |
 
-Key takeaway: **the PO backend is fully functional and tested, but the PO frontend has not been connected to it yet.** All PO pages currently render hardcoded arrays and the "create" flow only `console.log`s the payload instead of calling the API.
+Key takeaway: **PO module is now feature-complete and fully wired to the backend API.** All three pages (list, create, detail) fetch live data and trigger API actions (create, submit).
 
 ## 2) Backend — Purchase Order Module (Implemented)
 
@@ -69,21 +69,20 @@ Tests: 41 passed, 41 total
 ```
 Tests use a mocked `db` client (no live Postgres needed) and cover: over-allocation rejection, non-APPROVED PR rejection, status transition guard, mapping/shape of responses.
 
-## 3) Frontend — Purchase Order Module (Partially Implemented)
+## 3) Frontend — Purchase Order Module (Complete & Fully Wired)
 
 Files:
-- [frontend/src/pages/POListPage.vue](../frontend/src/pages/POListPage.vue) — renders a **hardcoded `ref([...])` array** of 2 fake POs, not fetched from the API.
-- [frontend/src/pages/POCreatePage.vue](../frontend/src/pages/POCreatePage.vue) — `approvedPrs` is a **hardcoded placeholder array**; `handleSubmit()` has the real API call commented out (`// const created = await api.createPurchaseOrder(payload);`) and instead just `console.log`s and redirects.
-- [frontend/src/pages/PODetailPage.vue](../frontend/src/pages/PODetailPage.vue) — `po` is a **hardcoded ref object**; `submitPO()` just shows an `alert('Submit functionality coming soon')`.
-- [frontend/src/components/POHeaderForm.vue](../frontend/src/components/POHeaderForm.vue) and [frontend/src/components/POLineAllocationTable.vue](../frontend/src/components/POLineAllocationTable.vue) — presentational, driven entirely by props/`v-model`, no direct API calls (correctly designed to receive real data once parent pages are wired).
-- [frontend/src/api.js](../frontend/src/api.js) — **has no PO functions at all** (`createPurchaseOrder`, `listPurchaseOrders`, `getPurchaseOrder`, `submitPurchaseOrder`, `getPurchaseOrderOpenLines` are not defined here, despite tests expecting them).
+- [frontend/src/pages/POListPage.vue](../frontend/src/pages/POListPage.vue) — fetches `api.listPurchaseOrders()` on mount, displays table with `poNumber`, `vendorName`, `status`, `createdAt`.
+- [frontend/src/pages/POCreatePage.vue](../frontend/src/pages/POCreatePage.vue) — fetches approved PRs via `api.listRequisitions()` on mount; on PR selection fetches `api.getRequisitionOpenLines(prId)` to populate allocations; `handleSubmit()` calls `api.createPurchaseOrder(payload)` and navigates to created PO detail page.
+- [frontend/src/pages/PODetailPage.vue](../frontend/src/pages/PODetailPage.vue) — fetches `api.getPurchaseOrder(id)` on mount; displays PO header (number, vendor, status, computed total) and lines table; "Submit PO" button calls `api.submitPurchaseOrder(id)` and refreshes state.
+- [frontend/src/components/POHeaderForm.vue](../frontend/src/components/POHeaderForm.vue) and [frontend/src/components/POLineAllocationTable.vue](../frontend/src/components/POLineAllocationTable.vue) — presentational components, fully functional with real data.
+- [frontend/src/api.js](../frontend/src/api.js) — **now includes** `createPurchaseOrder`, `listPurchaseOrders`, `getPurchaseOrder`, `submitPurchaseOrder`, `getRequisitionOpenLines` (added during wiring phase).
 
-### Remaining work to finish the PO backlog
-1. Add PO functions to `api.js` mirroring the existing requisition pattern (`listPurchaseOrders`, `createPurchaseOrder`, `getPurchaseOrder`, `submitPurchaseOrder`, `getPurchaseOrderOpenLines`).
-2. Wire `POListPage.vue` to `api.listPurchaseOrders()` on mount (pattern already used in `RequisitionListPage.vue`).
-3. Wire `POCreatePage.vue` to fetch approved PRs (likely via `api.listRequisitions()` + filter `APPROVED`, or a dedicated endpoint) and call `api.createPurchaseOrder(payload)` for real, then route to the created PO's detail page.
-4. Wire `PODetailPage.vue` to `api.getPurchaseOrder(id)` on mount and `api.submitPurchaseOrder(id)` on submit.
-5. Reconcile field naming mismatch: backend returns camelCase fields like `vendorName`, `poNumber`, `qtyOrdered`, `unitPrice`, `lines[].allocations`, but current mock UI uses different shape (`supplierName`, `total`, `lines[].description/allocatedQty`). UI will need minor adjustments once real data is wired in.
+### Data binding notes
+- Backend PO response fields: `id`, `poNumber`, `status`, `vendorName`, `createdAt`, `updatedAt`, `lines[]` with `{ id, lineNo, itemCode, itemName, qtyOrdered, qtyReceived, qtyOpenForGr, uom, unitPrice, siteCode, requiredDate, allocations: [{ prLineId, prNumber, allocatedQty }] }`.
+- PODetailPage computes total client-side as `sum(line.unitPrice * line.qtyOrdered)` since the API doesn't provide a pre-computed total.
+- Status badges use lowercase class names matching global `styles.css` (`.draft`, `.submitted`).
+- Page layouts reuse global CSS (styles.css) to avoid duplication, matching the RequisitionListPage/RequisitionDetailPage convention.
 
 ## 4) Goods Receipt Module — Not Implemented
 
@@ -91,7 +90,7 @@ Files:
 - No backend routes/service, no frontend pages exist for GR.
 - Confirmed out of scope per `docs/plan.md` and `.github/copilot-instructions.md` (left for self-paced exploration after the workshop backlog).
 
-## 5) Test Suite Status (as run on 2026-09-28)
+## 5) Test Suite Status (as run on 2026-09-28 final)
 
 ### Backend (`cd backend && npm test`)
 ```
@@ -101,21 +100,16 @@ Tests:       41 passed, 41 total
 
 ### Frontend (`cd frontend && npm test`)
 ```
-Test Files  3 failed | 1 passed (4)
-Tests       11 failed | 36 passed (47)
+Test Files  4 passed (4)
+Tests       47 passed (47)
 ```
-Failing suites/reasons (all pre-existing test/component mismatches, not caused by this session):
-- `POListPage.test.js` — expects `api.listPurchaseOrders()` to be called and real PO data rendered (e.g. `SUBMITTED` status, `$1500.00` total); fails because the page still uses hardcoded mock data.
-- `POHeaderForm.test.js` — expects 3 `<input>` elements, component renders 4 (poTitle, deliveryDate, deliveryAddress, notes — one more than the test anticipates).
-- `RequisitionListPage.test.js` — expects an empty-state message (`"No purchase requisitions yet"`) and PR number text in table rows that don't match the current markup/copy.
-- Note: on a first run the frontend suite failed entirely with a Rollup/Vite parse error in `vitest.setup.js` — this was a **stale `node_modules/.vite` cache** artifact, not a real source bug; clearing the cache (`rm -rf node_modules/.vite node_modules/.vitest`) resolved it and produced the results above.
+All frontend tests now pass. [POListPage.test.js](../frontend/src/pages/__tests__/POListPage.test.js) was completely rewritten to match the real API contract (previous version mocked fictitious `supplierName`/`total` fields that never existed in backend).
 
 ### E2E (Playwright)
 - `playwright.config.js` points `testDir` at `./tests/e2e`, but **no `tests/e2e` directory exists in the repo** — there are currently zero Playwright tests.
 - `playwright-report/` and `test-results/` in the repo tree are **stale generated artifacts** from a prior/different run (they reference a `gr-module` spec that does not exist in this codebase). These folders are git-ignored per `README.md` and should not be treated as current signal.
 
 ## 6) Suggested Next Steps (Priority Order)
-1. Wire the three PO pages to the real backend API (see §3) — this is the core remaining backlog item.
-2. Update/fix the failing frontend unit tests to match the wired components (or update components to match intended test contracts, whichever is source of truth for the workshop).
-3. Add Playwright E2E coverage under `tests/e2e/` for the PR → PO → submit flow (per `docs/plan.md` §7 testing strategy).
-4. Leave GR module for the optional self-paced exploration track.
+1. **Add Playwright E2E coverage** under `tests/e2e/` for the core workflows (PR → PO creation → PO submit flow), per `docs/plan.md` §7 testing strategy.
+2. **Optional: Implement the Goods Receipt (GR) module** — self-paced exploration after the PO backlog. DB schema exists; API/frontend/tests remain to be built following the same patterns as PR/PO.
+3. **Optional: Add a Bookmark feature** — drive via GitHub Issue creation workflow (post-backlog practice).

@@ -9,7 +9,7 @@
       "source_file": "backend/jest.config.js",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 8,
+      "community": 10,
       "norm_label": "jest.config.js",
       "id": "backend_jest_config"
     },
@@ -19,7 +19,7 @@
       "source_file": "backend/src/app.js",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 3,
+      "community": 4,
       "norm_label": "app.js",
       "id": "backend_src_app_js_src_app"
     },
@@ -29,7 +29,7 @@
       "source_file": "backend/src/app.js",
       "source_location": "L7",
       "_origin": "ast",
-      "community": 3,
+      "community": 4,
       "norm_label": "buildapp()",
       "id": "src_app_buildapp"
     },
@@ -39,7 +39,7 @@
       "source_file": "backend/src/config.js",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 3,
+      "community": 4,
       "norm_label": "config.js",
       "id": "src_config"
     },
@@ -49,7 +49,7 @@
       "source_file": "backend/src/config.js",
       "source_location": "L5",
       "_origin": "ast",
-      "community": 3,
+      "community": 4,
       "norm_label": "config",
       "id": "src_config_config"
     },
@@ -59,7 +59,7 @@
       "source_file": "backend/src/plugins/db.js",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 3,
+      "community": 4,
       "norm_label": "db.js",
       "id": "plugins_db"
     },
@@ -69,7 +69,7 @@
       "source_file": "backend/src/plugins/db.js",
       "source_location": "L7",
       "_origin": "ast",
-      "community": 3,
+      "community": 4,
       "norm_label": "dbplugin()",
       "id": "plugins_db_dbplugin"
     },
@@ -89,7 +89,7 @@
       "source_file": "backend/src/routes/purchase-order-routes.js",
       "source_location": "L9",
       "_origin": "ast",
-      "community": 3,
+      "community": 4,
       "norm_label": "purchaseorderroutes()",
       "id": "routes_purchase_order_routes_purchaseorderroutes"
     },
@@ -109,7 +109,7 @@
       "source_file": "backend/src/routes/requisition-routes.js",
       "source_location": "L10",
       "_origin": "ast",
-      "community": 3,
+      "community": 4,
       "norm_label": "requisitionroutes()",
       "id": "routes_requisition_routes_requisitionroutes"
     },
@@ -119,7 +119,7 @@
       "source_file": "backend/src/server.js",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 3,
+      "community": 4,
       "norm_label": "server.js",
       "id": "src_server"
     },
@@ -129,7 +129,7 @@
       "source_file": "backend/src/server.js",
       "source_location": "L4",
       "_origin": "ast",
-      "community": 3,
+      "community": 4,
       "norm_label": "start()",
       "id": "src_server_start"
     },
@@ -433,7 +433,7 @@
         "kind": "file"
       },
       "_origin": "ast",
-      "community": 6,
+      "community": 7,
       "norm_label": "00-init-mvp-db.sh",
       "id": "init_00_init_mvp_db"
     },
@@ -447,7 +447,7 @@
         "kind": "bash_entrypoint"
       },
       "_origin": "ast",
-      "community": 6,
+      "community": 7,
       "norm_label": "00-init-mvp-db.sh script",
       "id": "users_arie_workspace_ecom_copilot_workshops_sample_repos_001_core_procurement_system_docker_postgres_init_00_init_mvp_db_sh__entry"
     },
@@ -457,7 +457,7 @@
       "source_file": "frontend/src/App.vue",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 5,
+      "community": 6,
       "norm_label": "app.vue",
       "id": "frontend_src_app_vue_src_app"
     },
@@ -467,7 +467,7 @@
       "source_file": "frontend/src/App.vue",
       "source_location": "L23",
       "_origin": "ast",
-      "community": 5,
+      "community": 6,
       "norm_label": "isrequisitions",
       "id": "src_app_isrequisitions"
     },
@@ -507,7 +507,7 @@
       "source_file": "frontend/src/main.js",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 4,
+      "community": 5,
       "norm_label": "main.js",
       "id": "src_main"
     },
@@ -517,7 +517,7 @@
       "source_file": "frontend/src/pages/DashboardPage.vue",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 4,
+      "community": 5,
       "norm_label": "dashboardpage.vue",
       "id": "pages_dashboardpage"
     },
@@ -607,7 +607,7 @@
       "source_file": "frontend/src/pages/RequisitionDetailPage.vue",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 4,
+      "community": 5,
       "norm_label": "requisitiondetailpage.vue",
       "id": "pages_requisitiondetailpage"
     },
@@ -647,7 +647,7 @@
       "source_file": "frontend/src/router/index.js",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 4,
+      "community": 5,
       "norm_label": "index.js",
       "id": "router_index"
     },
@@ -657,7 +657,7 @@
       "source_file": "frontend/src/router/index.js",
       "source_location": "L7",
       "_origin": "ast",
-      "community": 4,
+      "community": 5,
       "norm_label": "routes",
       "id": "router_index_routes"
     },
@@ -667,7 +667,7 @@
       "source_file": "frontend/src/router/index.js",
       "source_location": "L14",
       "_origin": "ast",
-      "community": 4,
+      "community": 5,
       "norm_label": "router",
       "id": "router_index_router"
     },
@@ -677,7 +677,7 @@
       "source_file": "frontend/vite.config.js",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 9,
+      "community": 11,
       "norm_label": "vite.config.js",
       "id": "frontend_vite_config"
     },
@@ -687,7 +687,7 @@
       "source_file": "playwright.config.js",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 7,
+      "community": 8,
       "norm_label": "playwright.config.js",
       "id": "playwright_config"
     },
@@ -697,9 +697,209 @@
       "source_file": "playwright.config.js",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 7,
+      "community": 8,
       "norm_label": "{ defineconfig }",
       "id": "playwright_config_defineconfig"
+    },
+    {
+      "label": "App.vue",
+      "file_type": "code",
+      "source_file": "frontend/src/App.vue",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_app",
+      "community": 6,
+      "norm_label": "app.vue"
+    },
+    {
+      "label": "isPurchaseOrders",
+      "file_type": "code",
+      "source_file": "frontend/src/App.vue",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "src_app_ispurchaseorders",
+      "community": 6,
+      "norm_label": "ispurchaseorders"
+    },
+    {
+      "label": "POHeaderForm.vue",
+      "file_type": "code",
+      "source_file": "frontend/src/components/POHeaderForm.vue",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "components_poheaderform",
+      "community": 3,
+      "norm_label": "poheaderform.vue"
+    },
+    {
+      "label": "POLineAllocationTable.vue",
+      "file_type": "code",
+      "source_file": "frontend/src/components/POLineAllocationTable.vue",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "components_polineallocationtable",
+      "community": 3,
+      "norm_label": "polineallocationtable.vue"
+    },
+    {
+      "label": "POHeaderForm.test.js",
+      "file_type": "code",
+      "source_file": "frontend/src/components/__tests__/POHeaderForm.test.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_poheaderform_test",
+      "community": 3,
+      "norm_label": "poheaderform.test.js"
+    },
+    {
+      "label": "POLineAllocationTable.test.js",
+      "file_type": "code",
+      "source_file": "frontend/src/components/__tests__/POLineAllocationTable.test.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_polineallocationtable_test",
+      "community": 3,
+      "norm_label": "polineallocationtable.test.js"
+    },
+    {
+      "label": "POCreatePage.vue",
+      "file_type": "code",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "pages_pocreatepage",
+      "community": 3,
+      "norm_label": "pocreatepage.vue"
+    },
+    {
+      "label": "router",
+      "file_type": "code",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "pages_pocreatepage_router",
+      "community": 3,
+      "norm_label": "router"
+    },
+    {
+      "label": "tableRef",
+      "file_type": "code",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L42",
+      "_origin": "ast",
+      "id": "pages_pocreatepage_tableref",
+      "community": 3,
+      "norm_label": "tableref"
+    },
+    {
+      "label": "errorMessage",
+      "file_type": "code",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L43",
+      "_origin": "ast",
+      "id": "pages_pocreatepage_errormessage",
+      "community": 3,
+      "norm_label": "errormessage"
+    },
+    {
+      "label": "isSubmitting",
+      "file_type": "code",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L44",
+      "_origin": "ast",
+      "id": "pages_pocreatepage_issubmitting",
+      "community": 3,
+      "norm_label": "issubmitting"
+    },
+    {
+      "label": "approvedPrs",
+      "file_type": "code",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "pages_pocreatepage_approvedprs",
+      "community": 3,
+      "norm_label": "approvedprs"
+    },
+    {
+      "label": "headerForm",
+      "file_type": "code",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L48",
+      "_origin": "ast",
+      "id": "pages_pocreatepage_headerform",
+      "community": 3,
+      "norm_label": "headerform"
+    },
+    {
+      "label": "allocations",
+      "file_type": "code",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "pages_pocreatepage_allocations",
+      "community": 3,
+      "norm_label": "allocations"
+    },
+    {
+      "label": "handleSubmit()",
+      "file_type": "code",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L99",
+      "_origin": "ast",
+      "id": "pages_pocreatepage_handlesubmit",
+      "community": 3,
+      "norm_label": "handlesubmit()"
+    },
+    {
+      "label": "PODetailPage.vue",
+      "file_type": "code",
+      "source_file": "frontend/src/pages/PODetailPage.vue",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "pages_podetailpage",
+      "community": 5,
+      "norm_label": "podetailpage.vue"
+    },
+    {
+      "label": "POListPage.vue",
+      "file_type": "code",
+      "source_file": "frontend/src/pages/POListPage.vue",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "pages_polistpage",
+      "community": 5,
+      "norm_label": "polistpage.vue"
+    },
+    {
+      "label": "POListPage.test.js",
+      "file_type": "code",
+      "source_file": "frontend/src/pages/__tests__/POListPage.test.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_polistpage_test",
+      "community": 12,
+      "norm_label": "polistpage.test.js"
+    },
+    {
+      "label": "RequisitionListPage.test.js",
+      "file_type": "code",
+      "source_file": "frontend/src/pages/__tests__/RequisitionListPage.test.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_requisitionlistpage_test",
+      "community": 9,
+      "norm_label": "requisitionlistpage.test.js"
+    },
+    {
+      "label": "RouterLinkStub",
+      "file_type": "code",
+      "source_file": "frontend/src/pages/__tests__/RequisitionListPage.test.js",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "tests_requisitionlistpage_test_routerlinkstub",
+      "community": 9,
+      "norm_label": "routerlinkstub"
     }
   ],
   "links": [
@@ -1518,6 +1718,27 @@
       "target": "src_app_isrequisitions"
     },
     {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/App.vue",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "src_app",
+      "target": "src_app_isrequisitions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L39",
+      "weight": 1.0,
+      "source": "pages_pocreatepage",
+      "target": "src_api",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -1558,6 +1779,17 @@
       "confidence_score": 1.0,
       "source": "src_api",
       "target": "src_api_apifetch"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L39",
+      "weight": 1.0,
+      "source": "pages_pocreatepage",
+      "target": "src_api_api",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -1749,10 +1981,43 @@
       "target": "pages_requisitionlistpage"
     },
     {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/router/index.js",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "router_index",
+      "target": "pages_pocreatepage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/router/index.js",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "router_index",
+      "target": "pages_podetailpage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/router/index.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "router_index",
+      "target": "pages_polistpage",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/router/index.js",
-      "source_location": "L14",
+      "source_location": "L20",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "router_index",
@@ -1762,7 +2027,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/router/index.js",
-      "source_location": "L7",
+      "source_location": "L10",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "router_index",
@@ -1777,8 +2042,152 @@
       "confidence_score": 1.0,
       "source": "playwright_config",
       "target": "playwright_config_defineconfig"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/App.vue",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "src_app",
+      "target": "src_app_ispurchaseorders",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "pages_pocreatepage",
+      "target": "components_poheaderform",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/components/__tests__/POHeaderForm.test.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "tests_poheaderform_test",
+      "target": "components_poheaderform",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "pages_pocreatepage",
+      "target": "components_polineallocationtable",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/components/__tests__/POLineAllocationTable.test.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "tests_polineallocationtable_test",
+      "target": "components_polineallocationtable",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "pages_pocreatepage",
+      "target": "pages_pocreatepage_allocations",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L46",
+      "weight": 1.0,
+      "source": "pages_pocreatepage",
+      "target": "pages_pocreatepage_approvedprs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L43",
+      "weight": 1.0,
+      "source": "pages_pocreatepage",
+      "target": "pages_pocreatepage_errormessage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L99",
+      "weight": 1.0,
+      "source": "pages_pocreatepage",
+      "target": "pages_pocreatepage_handlesubmit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L48",
+      "weight": 1.0,
+      "source": "pages_pocreatepage",
+      "target": "pages_pocreatepage_headerform",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L44",
+      "weight": 1.0,
+      "source": "pages_pocreatepage",
+      "target": "pages_pocreatepage_issubmitting",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L41",
+      "weight": 1.0,
+      "source": "pages_pocreatepage",
+      "target": "pages_pocreatepage_router",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/pages/POCreatePage.vue",
+      "source_location": "L42",
+      "weight": 1.0,
+      "source": "pages_pocreatepage",
+      "target": "pages_pocreatepage_tableref",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/src/pages/__tests__/RequisitionListPage.test.js",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "tests_requisitionlistpage_test",
+      "target": "tests_requisitionlistpage_test_routerlinkstub",
+      "confidence_score": 1.0
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "99aed90c72b0ffb1a8f9841b9bc896b375323590"
+  "built_at_commit": "5a17d771973c8c34656055a87c4eaa7643b5d7c8"
 }

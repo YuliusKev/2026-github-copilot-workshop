@@ -52,6 +52,21 @@
       "services_requisition_service_validatecreatepayload"
     ],
     "3": [
+      "components_poheaderform",
+      "components_polineallocationtable",
+      "pages_pocreatepage",
+      "pages_pocreatepage_allocations",
+      "pages_pocreatepage_approvedprs",
+      "pages_pocreatepage_errormessage",
+      "pages_pocreatepage_handlesubmit",
+      "pages_pocreatepage_headerform",
+      "pages_pocreatepage_issubmitting",
+      "pages_pocreatepage_router",
+      "pages_pocreatepage_tableref",
+      "tests_poheaderform_test",
+      "tests_polineallocationtable_test"
+    ],
+    "4": [
       "backend_src_app_js_src_app",
       "plugins_db",
       "plugins_db_dbplugin",
@@ -63,44 +78,58 @@
       "src_server",
       "src_server_start"
     ],
-    "4": [
+    "5": [
       "pages_dashboardpage",
+      "pages_podetailpage",
+      "pages_polistpage",
       "pages_requisitiondetailpage",
       "router_index",
       "router_index_router",
       "router_index_routes",
       "src_main"
     ],
-    "5": [
+    "6": [
       "frontend_src_app_vue_src_app",
+      "src_app",
+      "src_app_ispurchaseorders",
       "src_app_isrequisitions"
     ],
-    "6": [
+    "7": [
       "init_00_init_mvp_db",
       "users_arie_workspace_ecom_copilot_workshops_sample_repos_001_core_procurement_system_docker_postgres_init_00_init_mvp_db_sh__entry"
     ],
-    "7": [
+    "8": [
       "playwright_config",
       "playwright_config_defineconfig"
     ],
-    "8": [
+    "9": [
+      "tests_requisitionlistpage_test",
+      "tests_requisitionlistpage_test_routerlinkstub"
+    ],
+    "10": [
       "backend_jest_config"
     ],
-    "9": [
+    "11": [
       "frontend_vite_config"
+    ],
+    "12": [
+      "tests_polistpage_test"
     ]
   },
   "cohesion": {
     "0": 0.22794117647058823,
     "1": 0.17582417582417584,
     "2": 0.2967032967032967,
-    "3": 0.28888888888888886,
-    "4": 0.4,
-    "5": 1.0,
-    "6": 1.0,
+    "3": 0.15384615384615385,
+    "4": 0.28888888888888886,
+    "5": 0.2857142857142857,
+    "6": 0.5,
     "7": 1.0,
     "8": 1.0,
-    "9": 1.0
+    "9": 1.0,
+    "10": 1.0,
+    "11": 1.0,
+    "12": 1.0
   },
   "gods": [
     {
@@ -129,6 +158,11 @@
       "degree": 4
     },
     {
+      "id": "src_api_api",
+      "label": "api",
+      "degree": 4
+    },
+    {
       "id": "src_app_buildapp",
       "label": "buildApp()",
       "degree": 3
@@ -146,11 +180,6 @@
     {
       "id": "services_purchase_order_service_getopenpolines",
       "label": "getOpenPoLines()",
-      "degree": 3
-    },
-    {
-      "id": "services_requisition_service_listrequisitions",
-      "label": "listRequisitions()",
       "degree": 3
     }
   ],
