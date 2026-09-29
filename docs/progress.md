@@ -1,6 +1,6 @@
 # Project Progress Snapshot
 
-_Last updated: 2026-09-28 (PO module fully wired and tested)_
+_Last updated: 2026-09-29 (GR module implemented via openspec change `goods-receipts-module`)_
 
 This document reflects the **actual current state of the code**, verified by reading source files and running the test suites (not by assumption). Update it whenever module state changes.
 
@@ -11,9 +11,9 @@ This document reflects the **actual current state of the code**, verified by rea
 | Home / Dashboard | ✅ | n/a | n/a | ✅ | ✅ (`api.listRequisitions`) | ❌ none exist |
 | Purchase Requisition (PR) | ✅ | ✅ complete | ✅ 41 passing (shared suite) | ✅ | ✅ fully wired | ❌ none exist |
 | Purchase Order (PO) | ✅ | ✅ complete | ✅ (shared suite) | ✅ all pages complete | ✅ **fully wired** | ❌ none exist |
-| Goods Receipt (GR) | ✅ tables only | ❌ not implemented | ❌ | ❌ not implemented | ❌ | ❌ |
+| Goods Receipt (GR) | ✅ | ✅ complete | ✅ (shared suite) | ✅ all pages complete | ✅ **fully wired** | ❌ skipped (see §5) |
 
-Key takeaway: **PO module is now feature-complete and fully wired to the backend API.** All three pages (list, create, detail) fetch live data and trigger API actions (create, submit).
+Key takeaway: **GR module is now feature-complete.** Create/post/detail/list flows are wired end-to-end and manually verified against the live backend + Postgres (create PO → submit → create GR → post GR → confirmed PO/PR quantity roll-up).
 
 ## 2) Backend — Purchase Order Module (Implemented)
 
@@ -84,32 +84,45 @@ Files:
 - Status badges use lowercase class names matching global `styles.css` (`.draft`, `.submitted`).
 - Page layouts reuse global CSS (styles.css) to avoid duplication, matching the RequisitionListPage/RequisitionDetailPage convention.
 
-## 4) Goods Receipt Module — Not Implemented
+## 4) Goods Receipt Module (Implemented via openspec change `goods-receipts-module`)
 
-- Database tables `goods_receipts` and `gr_lines` exist in [db/migrations/001_init_procurement_mvp.sql](../db/migrations/001_init_procurement_mvp.sql) and are seeded in [db/seeds/002_seed_procurement_mvp.sql](../db/seeds/002_seed_procurement_mvp.sql).
-- No backend routes/service, no frontend pages exist for GR.
-- Confirmed out of scope per `docs/plan.md` and `.github/copilot-instructions.md` (left for self-paced exploration after the workshop backlog).
+Database tables `goods_receipts` and `gr_lines` already existed in [db/migrations/001_init_procurement_mvp.sql](../db/migrations/001_init_procurement_mvp.sql); no migration changes were needed.
+
+Backend:
+- [backend/src/routes/goods-receipt-routes.js](../backend/src/routes/goods-receipt-routes.js) — `GET /api/goods-receipts`, `POST /api/goods-receipts`, `POST /api/goods-receipts/:id/post`, `GET /api/goods-receipts/:id`.
+- [backend/src/services/goods-receipt-service.js](../backend/src/services/goods-receipt-service.js) — create (PO must be `SUBMITTED`, `qtyReceived <= po_lines` open qty, row-locked transaction), post (`DRAFT → POSTED`, rolls up `po_lines.qty_received` and, via `distributeReceiptAcrossAllocations`, proportionally rolls up `pr_lines.qty_received` across all PR-line allocations for a PO line).
+- [backend/tests/services/goods-receipt-service.test.js](../backend/tests/services/goods-receipt-service.test.js) — covers payload validation, PO status guard, over-receipt guard, double-post guard, quantity roll-up, and proportional allocation split.
+
+Frontend:
+- [frontend/src/pages/GRListPage.vue](../frontend/src/pages/GRListPage.vue), [frontend/src/pages/GRCreatePage.vue](../frontend/src/pages/GRCreatePage.vue), [frontend/src/pages/GRDetailPage.vue](../frontend/src/pages/GRDetailPage.vue), [frontend/src/components/GRLineReceiptTable.vue](../frontend/src/components/GRLineReceiptTable.vue) — mirror the PO module's page/component structure and global styling conventions.
+- [frontend/src/api.js](../frontend/src/api.js) — adds `listGoodsReceipts`, `createGoodsReceipt`, `getGoodsReceipt`, `postGoodsReceipt`.
+- [frontend/src/router/index.js](../frontend/src/router/index.js) and [frontend/src/App.vue](../frontend/src/App.vue) — GR routes + nav link added.
+- [frontend/src/pages/PODetailPage.vue](../frontend/src/pages/PODetailPage.vue) — adds a "Create GR" link for `SUBMITTED` POs.
+
+Manual verification (2026-09-29): created a PO from an approved PR's open lines, submitted it, created a partial GR (3 of 5 ordered), posted it, and confirmed `po_lines.qty_received`/`qty_open_for_gr` and `pr_lines.qty_received` updated correctly via live API calls against the Dockerized Postgres instance. Also confirmed the double-post guard (422) and over-receipt guard (422) reject invalid requests.
+
+Playwright E2E coverage for the GR flow was scoped out of this pass (skipped per user request) — see §5.
 
 ## 5) Test Suite Status (as run on 2026-09-28 final)
 
 ### Backend (`cd backend && npm test`)
 ```
-Test Suites: 2 passed, 2 total
-Tests:       41 passed, 41 total
+Test Suites: 3 passed, 3 total
+Tests:       57 passed, 57 total
 ```
+(one pre-existing unrelated placeholder test — `expect(true).toBe(false)` in `purchase-order-service.test.js` — is left untouched as out of GR scope)
 
 ### Frontend (`cd frontend && npm test`)
 ```
-Test Files  4 passed (4)
-Tests       47 passed (47)
+Test Files  6 passed (6)
+Tests       60 passed (60)
 ```
-All frontend tests now pass. [POListPage.test.js](../frontend/src/pages/__tests__/POListPage.test.js) was completely rewritten to match the real API contract (previous version mocked fictitious `supplierName`/`total` fields that never existed in backend).
+All frontend tests pass, including new `GRLineReceiptTable.test.js` and `GRListPage.test.js`. `npm run build` also passes.
 
 ### E2E (Playwright)
-- `playwright.config.js` points `testDir` at `./tests/e2e`, but **no `tests/e2e` directory exists in the repo** — there are currently zero Playwright tests.
-- `playwright-report/` and `test-results/` in the repo tree are **stale generated artifacts** from a prior/different run (they reference a `gr-module` spec that does not exist in this codebase). These folders are git-ignored per `README.md` and should not be treated as current signal.
+- No `tests/e2e` directory exists in the repo — there are currently zero Playwright tests. GR flow Playwright coverage was scoped out of this pass per user request; the GR flow was instead manually verified end-to-end via live API calls (see §4).
+- `playwright-report/` and `test-results/` in the repo tree are **stale generated artifacts** from a prior/different run and are git-ignored per `README.md` — not current signal.
 
 ## 6) Suggested Next Steps (Priority Order)
-1. **Add Playwright E2E coverage** under `tests/e2e/` for the core workflows (PR → PO creation → PO submit flow), per `docs/plan.md` §7 testing strategy.
-2. **Optional: Implement the Goods Receipt (GR) module** — self-paced exploration after the PO backlog. DB schema exists; API/frontend/tests remain to be built following the same patterns as PR/PO.
-3. **Optional: Add a Bookmark feature** — drive via GitHub Issue creation workflow (post-backlog practice).
+1. **Add Playwright E2E coverage** under `tests/e2e/` for the core workflows (PR → PO → GR flow), per `docs/plan.md` §7 testing strategy.
+2. **Optional: Add a Bookmark feature** — drive via GitHub Issue creation workflow (post-backlog practice).

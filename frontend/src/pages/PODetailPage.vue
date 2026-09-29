@@ -11,6 +11,7 @@
       </div>
       <div class="btn-group" v-if="po">
         <button v-if="po.status === 'DRAFT'" class="btn btn-primary" @click="submitPO">Submit PO</button>
+        <RouterLink v-if="po.status === 'SUBMITTED'" :to="`/goods-receipts/new?poId=${po.id}`" class="btn btn-primary">Create GR</RouterLink>
       </div>
     </div>
 

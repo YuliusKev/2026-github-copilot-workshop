@@ -6,6 +6,9 @@ import RequisitionDetailPage from '../pages/RequisitionDetailPage.vue';
 import POListPage from '../pages/POListPage.vue';
 import POCreatePage from '../pages/POCreatePage.vue';
 import PODetailPage from '../pages/PODetailPage.vue';
+import GRListPage from '../pages/GRListPage.vue';
+import GRCreatePage from '../pages/GRCreatePage.vue';
+import GRDetailPage from '../pages/GRDetailPage.vue';
 
 const routes = [
   { path: '/', name: 'dashboard', component: DashboardPage },
@@ -15,6 +18,9 @@ const routes = [
   { path: '/purchase-orders', name: 'po-list', component: POListPage },
   { path: '/purchase-orders/new', name: 'po-create', component: POCreatePage },
   { path: '/purchase-orders/:id', name: 'po-detail', component: PODetailPage, props: true },
+  { path: '/goods-receipts', name: 'gr-list', component: GRListPage },
+  { path: '/goods-receipts/new', name: 'gr-create', component: GRCreatePage },
+  { path: '/goods-receipts/:id', name: 'gr-detail', component: GRDetailPage, props: true },
 ];
 
 const router = createRouter({
