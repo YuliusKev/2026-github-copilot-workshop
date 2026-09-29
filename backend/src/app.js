@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import dbPlugin from './plugins/db.js';
+import swaggerPlugin from './plugins/swagger.js';
 import requisitionRoutes from './routes/requisition-routes.js';
 import purchaseOrderRoutes from './routes/purchase-order-routes.js';
 
@@ -11,6 +12,7 @@ export function buildApp() {
     origin: true,
   });
 
+  app.register(swaggerPlugin);
   app.register(dbPlugin);
   app.register(requisitionRoutes);
   app.register(purchaseOrderRoutes);

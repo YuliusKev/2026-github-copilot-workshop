@@ -8,12 +8,12 @@ import {
 } from '../services/requisition-service.js';
 
 export default async function requisitionRoutes(fastify) {
-  fastify.get('/api/requisitions', async (request, reply) => {
+  fastify.get('/api/requisitions', { schema: { tags: ['requisitions'] } }, async (request, reply) => {
     const items = await listRequisitions(fastify.db);
     return { items };
   });
 
-  fastify.post('/api/requisitions', async (request, reply) => {
+  fastify.post('/api/requisitions', { schema: { tags: ['requisitions'] } }, async (request, reply) => {
     try {
       const requisition = await createRequisition(fastify.db, request.body);
       reply.code(201);
@@ -28,7 +28,7 @@ export default async function requisitionRoutes(fastify) {
     }
   });
 
-  fastify.post('/api/requisitions/:id/submit', async (request, reply) => {
+  fastify.post('/api/requisitions/:id/submit', { schema: { tags: ['requisitions'] } }, async (request, reply) => {
     try {
       const requisition = await submitRequisition(fastify.db, request.params.id);
       if (!requisition) {
@@ -47,7 +47,7 @@ export default async function requisitionRoutes(fastify) {
     }
   });
 
-  fastify.post('/api/requisitions/:id/approve', async (request, reply) => {
+  fastify.post('/api/requisitions/:id/approve', { schema: { tags: ['requisitions'] } }, async (request, reply) => {
     try {
       const requisition = await approveRequisition(fastify.db, request.params.id);
       if (!requisition) {
@@ -66,7 +66,7 @@ export default async function requisitionRoutes(fastify) {
     }
   });
 
-  fastify.get('/api/requisitions/:id', async (request, reply) => {
+  fastify.get('/api/requisitions/:id', { schema: { tags: ['requisitions'] } }, async (request, reply) => {
     const requisition = await getRequisitionById(fastify.db, request.params.id);
     if (!requisition) {
       reply.code(404);
@@ -76,7 +76,7 @@ export default async function requisitionRoutes(fastify) {
     return requisition;
   });
 
-  fastify.get('/api/requisitions/:id/open-lines', async (request, reply) => {
+  fastify.get('/api/requisitions/:id/open-lines', { schema: { tags: ['requisitions'] } }, async (request, reply) => {
     const payload = await getRequisitionOpenLines(fastify.db, request.params.id);
     if (!payload) {
       reply.code(404);
