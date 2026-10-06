@@ -1,6 +1,26 @@
 {
   "communities": {
     "0": [
+      "routes_goods_receipt_routes",
+      "services_goods_receipt_service",
+      "services_goods_receipt_service_creategoodsreceipt",
+      "services_goods_receipt_service_creategrnumber",
+      "services_goods_receipt_service_distributereceiptacrossallocations",
+      "services_goods_receipt_service_getgoodsreceiptbyid",
+      "services_goods_receipt_service_listgoodsreceipts",
+      "services_goods_receipt_service_mapheader",
+      "services_goods_receipt_service_mapline",
+      "services_goods_receipt_service_postgoodsreceipt",
+      "services_goods_receipt_service_round2",
+      "services_goods_receipt_service_test",
+      "services_goods_receipt_service_test_createhappypathclientresponses",
+      "services_goods_receipt_service_test_detailqueryresponses",
+      "services_goods_receipt_service_test_mockclient",
+      "services_goods_receipt_service_test_mockdb",
+      "services_goods_receipt_service_test_validpayload",
+      "services_goods_receipt_service_validatecreatepayload"
+    ],
+    "1": [
       "routes_purchase_order_routes",
       "services_purchase_order_service",
       "services_purchase_order_service_createponumber",
@@ -19,7 +39,23 @@
       "services_purchase_order_service_test_validpayload",
       "services_purchase_order_service_validatecreatepayload"
     ],
-    "1": [
+    "2": [
+      "components_grlinereceipttable",
+      "pages_grcreatepage",
+      "pages_grcreatepage_errormessage",
+      "pages_grcreatepage_handlesubmit",
+      "pages_grcreatepage_issubmitting",
+      "pages_grcreatepage_notes",
+      "pages_grcreatepage_receiptdate",
+      "pages_grcreatepage_receiptlines",
+      "pages_grcreatepage_route",
+      "pages_grcreatepage_router",
+      "pages_grcreatepage_selectedpoid",
+      "pages_grcreatepage_submittedpos",
+      "pages_grcreatepage_tableref",
+      "tests_grlinereceipttable_test"
+    ],
+    "3": [
       "pages_requisitioncreatepage",
       "pages_requisitioncreatepage_addline",
       "pages_requisitioncreatepage_emptyline",
@@ -35,7 +71,7 @@
       "src_api_api",
       "src_api_apifetch"
     ],
-    "2": [
+    "4": [
       "routes_requisition_routes",
       "services_requisition_service",
       "services_requisition_service_approverequisition",
@@ -51,7 +87,22 @@
       "services_requisition_service_test_mockdb",
       "services_requisition_service_validatecreatepayload"
     ],
-    "3": [
+    "5": [
+      "backend_src_app_js_src_app",
+      "plugins_db",
+      "plugins_db_dbplugin",
+      "plugins_swagger",
+      "plugins_swagger_swaggerplugin",
+      "routes_goods_receipt_routes_goodsreceiptroutes",
+      "routes_purchase_order_routes_purchaseorderroutes",
+      "routes_requisition_routes_requisitionroutes",
+      "src_app_buildapp",
+      "src_config",
+      "src_config_config",
+      "src_server",
+      "src_server_start"
+    ],
+    "6": [
       "components_poheaderform",
       "components_polineallocationtable",
       "pages_pocreatepage",
@@ -66,20 +117,10 @@
       "tests_poheaderform_test",
       "tests_polineallocationtable_test"
     ],
-    "4": [
-      "backend_src_app_js_src_app",
-      "plugins_db",
-      "plugins_db_dbplugin",
-      "routes_purchase_order_routes_purchaseorderroutes",
-      "routes_requisition_routes_requisitionroutes",
-      "src_app_buildapp",
-      "src_config",
-      "src_config_config",
-      "src_server",
-      "src_server_start"
-    ],
-    "5": [
+    "7": [
       "pages_dashboardpage",
+      "pages_grdetailpage",
+      "pages_grlistpage",
       "pages_podetailpage",
       "pages_polistpage",
       "pages_requisitiondetailpage",
@@ -88,48 +129,55 @@
       "router_index_routes",
       "src_main"
     ],
-    "6": [
+    "8": [
       "frontend_src_app_vue_src_app",
       "src_app",
+      "src_app_isgoodsreceipts",
       "src_app_ispurchaseorders",
       "src_app_isrequisitions"
     ],
-    "7": [
+    "9": [
       "init_00_init_mvp_db",
       "users_arie_workspace_ecom_copilot_workshops_sample_repos_001_core_procurement_system_docker_postgres_init_00_init_mvp_db_sh__entry"
     ],
-    "8": [
+    "10": [
       "playwright_config",
       "playwright_config_defineconfig"
     ],
-    "9": [
+    "11": [
       "tests_requisitionlistpage_test",
       "tests_requisitionlistpage_test_routerlinkstub"
     ],
-    "10": [
+    "12": [
       "backend_jest_config"
     ],
-    "11": [
+    "13": [
       "frontend_vite_config"
     ],
-    "12": [
+    "14": [
+      "tests_grlistpage_test"
+    ],
+    "15": [
       "tests_polistpage_test"
     ]
   },
   "cohesion": {
-    "0": 0.22794117647058823,
-    "1": 0.17582417582417584,
-    "2": 0.2967032967032967,
-    "3": 0.15384615384615385,
-    "4": 0.28888888888888886,
-    "5": 0.2857142857142857,
-    "6": 0.5,
-    "7": 1.0,
-    "8": 1.0,
+    "0": 0.20261437908496732,
+    "1": 0.22794117647058823,
+    "2": 0.14285714285714285,
+    "3": 0.17582417582417584,
+    "4": 0.2967032967032967,
+    "5": 0.20512820512820512,
+    "6": 0.15384615384615385,
+    "7": 0.2222222222222222,
+    "8": 0.5,
     "9": 1.0,
     "10": 1.0,
     "11": 1.0,
-    "12": 1.0
+    "12": 1.0,
+    "13": 1.0,
+    "14": 1.0,
+    "15": 1.0
   },
   "gods": [
     {
@@ -148,8 +196,28 @@
       "degree": 6
     },
     {
+      "id": "services_goods_receipt_service_creategoodsreceipt",
+      "label": "createGoodsReceipt()",
+      "degree": 6
+    },
+    {
       "id": "services_requisition_service_createrequisition",
       "label": "createRequisition()",
+      "degree": 5
+    },
+    {
+      "id": "src_api_api",
+      "label": "api",
+      "degree": 5
+    },
+    {
+      "id": "services_goods_receipt_service_getgoodsreceiptbyid",
+      "label": "getGoodsReceiptById()",
+      "degree": 5
+    },
+    {
+      "id": "services_goods_receipt_service_postgoodsreceipt",
+      "label": "postGoodsReceipt()",
       "degree": 5
     },
     {
@@ -158,29 +226,9 @@
       "degree": 4
     },
     {
-      "id": "src_api_api",
-      "label": "api",
+      "id": "services_goods_receipt_service_distributereceiptacrossallocations",
+      "label": "distributeReceiptAcrossAllocations()",
       "degree": 4
-    },
-    {
-      "id": "src_app_buildapp",
-      "label": "buildApp()",
-      "degree": 3
-    },
-    {
-      "id": "src_config_config",
-      "label": "config",
-      "degree": 3
-    },
-    {
-      "id": "services_purchase_order_service_listpurchaseorders",
-      "label": "listPurchaseOrders()",
-      "degree": 3
-    },
-    {
-      "id": "services_purchase_order_service_getopenpolines",
-      "label": "getOpenPoLines()",
-      "degree": 3
     }
   ],
   "surprises": [
