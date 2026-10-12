@@ -1,9 +1,11 @@
 # Copilot Workshop Plan: Procurement MVP (minimum viable product)
 
 ## 1) Goal
+
 Build a realistic but small procurement web app to practice using Copilot across SDLC phases.
 
 MVP flow:
+
 1. Purchase Requisition (PR) create + submit + approve
 2. Purchase Order (PO) create from approved PR lines + submit
 3. Goods Receipt (GR) create from PO lines + post
@@ -12,6 +14,7 @@ MVP flow:
 Out of scope: production hardening, SSO, advanced approval matrix, reporting, notifications, and full enterprise compliance controls.
 
 Workshop implementation strategy:
+
 1. Core schema migration + sample seed are pre-provided in repository and bootstrapped via Docker init for participants.
 2. Home/Dashboard + PR module (list/create/detail + PR APIs) are prebuilt and working.
 3. Participant backlog focus is PO module only (PO list/create/detail + PO APIs + PO validations).
@@ -27,15 +30,18 @@ docker compose up -d db
 ```
 
 Bootstrap SQL files:
+
 - `db/migrations/001_init_procurement_mvp.sql`
 - `db/seeds/002_seed_procurement_mvp.sql`
 
 Bootstrap entrypoint script:
+
 - `docker/postgres/init/00-init-mvp-db.sh`
 
 ---
 
 ## 2) Final Tech Stack
+
 - Backend: Fastify (JavaScript), REST API
 - Database: PostgreSQL in Docker (`postgres:16-alpine`)
 - Frontend: Vue 3 + Vite (JavaScript)
@@ -43,6 +49,7 @@ Bootstrap entrypoint script:
 - E2E/UI test: Playwright
 
 Why this works for workshop:
+
 - Fastify is lightweight and easy to scaffold with Copilot
 - REST keeps backend/frontend contract simple
 - PostgreSQL in Docker is stable and realistic for local teams
@@ -114,6 +121,7 @@ flowchart LR
 ```
 
 Page purpose summary:
+
 - `PR Create`: enter requisition header + line items
 - `PR Detail`: show PR status, lines, and fulfillment summary
 - `PO Create`: pick approved PR lines and allocate order quantities
@@ -128,6 +136,7 @@ Page purpose summary:
 Target system APIs (full procurement flow):
 
 ### Requisition
+
 - `POST /api/requisitions`
 - `POST /api/requisitions/:id/submit`
 - `POST /api/requisitions/:id/approve`
@@ -137,6 +146,7 @@ Target system APIs (full procurement flow):
 Workshop status: prebuilt in baseline.
 
 ### Purchase Order
+
 - `POST /api/purchase-orders`
 - `POST /api/purchase-orders/:id/submit`
 - `GET /api/purchase-orders/:id`
@@ -144,7 +154,18 @@ Workshop status: prebuilt in baseline.
 
 Workshop status: participant implementation backlog (primary focus).
 
+Create PO integration:
+
+- `/purchase-orders/new` preserves the generated header and allocation components and loads open lines from approved requisitions via `GET /api/requisitions` and `GET /api/requisitions/:id/open-lines`.
+- Save As Draft calls `POST /api/purchase-orders`; Submit PO creates a draft if needed, then calls `POST /api/purchase-orders/:id/submit`. A saved draft is reused on submission retries, and its fields are locked because no PO update endpoint exists.
+- The payload maps vendor to `vendorName`, selected PR IDs to `prLineId`, order quantity to `qtyOrdered`, delivery address to `siteCode`, and delivery date (or header Needed By date) to `requiredDate`. Delivery address defaults to the source PR site code.
+- Currency, payment terms, and notes remain in the generated UI but are not persisted by the current MVP schema/API.
+- Allocation must be positive and no greater than PR remaining quantity. The service locks PR rows and checks cumulative quantities when the same PR line appears more than once. Rule violations return HTTP `422` with `{ "message": "..." }`; the page displays those messages, including stale-allocation failures.
+- Focused checks: `rtk npm --prefix backend test -- --runInBand tests/services/purchase-order-service.test.js`, `rtk npm --prefix frontend test`, and `rtk npm run test:e2e -- tests/e2e/purchase-order-create.spec.js --workers=1`.
+- Playwright requires the API, frontend, and PostgreSQL to be running. It creates dedicated PR/PO test records through the baseline PR APIs without modifying existing requisitions. Test records remain in the local database.
+
 ### Goods Receipt
+
 - `POST /api/goods-receipts`
 - `POST /api/goods-receipts/:id/post`
 - `GET /api/goods-receipts/:id`
@@ -161,79 +182,86 @@ All primary keys are UUID. Schema source of truth: `db/migrations/001_init_procu
 ### 5.1) Core Tables
 
 1. `purchase_requisitions` (PR header)
-  - `id` UUID (PK)
-  - `pr_number` VARCHAR(30) (UNIQUE)
-  - `requester_name` VARCHAR(120)
-  - `department_name` VARCHAR(120)
-  - `title` VARCHAR(255)
-  - `notes` TEXT (nullable)
-  - `needed_by_date` DATE
-  - `status` (`DRAFT | SUBMITTED | APPROVED`)
-  - `created_at`, `updated_at`
+
+- `id` UUID (PK)
+- `pr_number` VARCHAR(30) (UNIQUE)
+- `requester_name` VARCHAR(120)
+- `department_name` VARCHAR(120)
+- `title` VARCHAR(255)
+- `notes` TEXT (nullable)
+- `needed_by_date` DATE
+- `status` (`DRAFT | SUBMITTED | APPROVED`)
+- `created_at`, `updated_at`
 
 2. `pr_lines` (PR item lines)
-  - `id` UUID (PK)
-  - `pr_id` UUID (FK -> `purchase_requisitions.id`)
-  - `line_no` INT
-  - `item_code` VARCHAR(60), `item_name` VARCHAR(255)
-  - `qty_requested` NUMERIC(14,2) (> 0)
-  - `qty_allocated` NUMERIC(14,2) (>= 0, default 0) — denormalized, updated on PO creation
-  - `qty_received` NUMERIC(14,2) (>= 0, default 0) — denormalized, updated on GR posting
-  - `uom` VARCHAR(20)
-  - `est_unit_price` NUMERIC(14,2) (>= 0)
-  - `site_code` VARCHAR(50)
-  - `required_date` DATE
-  - `budget_center` VARCHAR(60)
-  - `created_at`, `updated_at`
-  - UNIQUE(`pr_id`, `line_no`)
+
+- `id` UUID (PK)
+- `pr_id` UUID (FK -> `purchase_requisitions.id`)
+- `line_no` INT
+- `item_code` VARCHAR(60), `item_name` VARCHAR(255)
+- `qty_requested` NUMERIC(14,2) (> 0)
+- `qty_allocated` NUMERIC(14,2) (>= 0, default 0) — denormalized, updated on PO creation
+- `qty_received` NUMERIC(14,2) (>= 0, default 0) — denormalized, updated on GR posting
+- `uom` VARCHAR(20)
+- `est_unit_price` NUMERIC(14,2) (>= 0)
+- `site_code` VARCHAR(50)
+- `required_date` DATE
+- `budget_center` VARCHAR(60)
+- `created_at`, `updated_at`
+- UNIQUE(`pr_id`, `line_no`)
 
 3. `purchase_orders` (PO header)
-  - `id` UUID (PK)
-  - `po_number` VARCHAR(30) (UNIQUE)
-  - `vendor_name` VARCHAR(255)
-  - `status` (`DRAFT | SUBMITTED`)
-  - `created_at`, `updated_at`
+
+- `id` UUID (PK)
+- `po_number` VARCHAR(30) (UNIQUE)
+- `vendor_name` VARCHAR(255)
+- `status` (`DRAFT | SUBMITTED`)
+- `created_at`, `updated_at`
 
 4. `po_lines` (PO item lines)
-  - `id` UUID (PK)
-  - `po_id` UUID (FK -> `purchase_orders.id`)
-  - `line_no` INT
-  - `item_code` VARCHAR(60), `item_name` VARCHAR(255)
-  - `qty_ordered` NUMERIC(14,2) (> 0)
-  - `qty_received` NUMERIC(14,2) (>= 0, default 0) — denormalized, updated on GR posting
-  - `uom` VARCHAR(20)
-  - `unit_price` NUMERIC(14,2) (>= 0)
-  - `site_code` VARCHAR(50)
-  - `required_date` DATE
-  - `created_at`, `updated_at`
-  - UNIQUE(`po_id`, `line_no`)
+
+- `id` UUID (PK)
+- `po_id` UUID (FK -> `purchase_orders.id`)
+- `line_no` INT
+- `item_code` VARCHAR(60), `item_name` VARCHAR(255)
+- `qty_ordered` NUMERIC(14,2) (> 0)
+- `qty_received` NUMERIC(14,2) (>= 0, default 0) — denormalized, updated on GR posting
+- `uom` VARCHAR(20)
+- `unit_price` NUMERIC(14,2) (>= 0)
+- `site_code` VARCHAR(50)
+- `required_date` DATE
+- `created_at`, `updated_at`
+- UNIQUE(`po_id`, `line_no`)
 
 5. `pr_line_allocations` (bridge PR line -> PO line)
-  - `id` UUID (PK)
-  - `pr_line_id` UUID (FK -> `pr_lines.id`)
-  - `po_line_id` UUID (FK -> `po_lines.id`)
-  - `allocated_qty` NUMERIC(14,2) (> 0)
-  - `created_at`
-  - UNIQUE(`pr_line_id`, `po_line_id`)
+
+- `id` UUID (PK)
+- `pr_line_id` UUID (FK -> `pr_lines.id`)
+- `po_line_id` UUID (FK -> `po_lines.id`)
+- `allocated_qty` NUMERIC(14,2) (> 0)
+- `created_at`
+- UNIQUE(`pr_line_id`, `po_line_id`)
 
 6. `goods_receipts` (GR header)
-  - `id` UUID (PK)
-  - `gr_number` VARCHAR(30) (UNIQUE)
-  - `po_id` UUID (FK -> `purchase_orders.id`)
-  - `status` (`DRAFT | POSTED`)
-  - `receipt_date` DATE
-  - `notes` TEXT (nullable)
-  - `created_at`, `updated_at`
+
+- `id` UUID (PK)
+- `gr_number` VARCHAR(30) (UNIQUE)
+- `po_id` UUID (FK -> `purchase_orders.id`)
+- `status` (`DRAFT | POSTED`)
+- `receipt_date` DATE
+- `notes` TEXT (nullable)
+- `created_at`, `updated_at`
 
 7. `gr_lines` (GR item lines)
-  - `id` UUID (PK)
-  - `gr_id` UUID (FK -> `goods_receipts.id`)
-  - `po_line_id` UUID (FK -> `po_lines.id`)
-  - `line_no` INT
-  - `qty_received` NUMERIC(14,2) (> 0)
-  - `actual_site_code` VARCHAR(50)
-  - `created_at`
-  - UNIQUE(`gr_id`, `line_no`)
+
+- `id` UUID (PK)
+- `gr_id` UUID (FK -> `goods_receipts.id`)
+- `po_line_id` UUID (FK -> `po_lines.id`)
+- `line_no` INT
+- `qty_received` NUMERIC(14,2) (> 0)
+- `actual_site_code` VARCHAR(50)
+- `created_at`
+- UNIQUE(`gr_id`, `line_no`)
 
 ### 5.2) ERD (MVP)
 
@@ -335,47 +363,55 @@ erDiagram
 
 ### 5.3) Rule Mapping to Data Model
 
-1. PO allocated qty <= PR line remaining qty  
-  - Check: `pr_lines.qty_allocated` + new allocation <= `pr_lines.qty_requested`
-  - On PO creation, atomically UPDATE `pr_lines SET qty_allocated = qty_allocated + allocated_qty`
-  - Bridge record: `pr_line_allocations.allocated_qty`
+1. PO allocated qty <= PR line remaining qty
 
-2. GR received qty <= PO line open qty  
-  - Check: `po_lines.qty_received` + new receipt <= `po_lines.qty_ordered`
-  - On GR posting, atomically UPDATE `po_lines SET qty_received = qty_received + qty_received`
-  - Also UPDATE `pr_lines.qty_received` via allocation chain
+- Check: `pr_lines.qty_allocated` + new allocation <= `pr_lines.qty_requested`
+- On PO creation, atomically UPDATE `pr_lines SET qty_allocated = qty_allocated + allocated_qty`
+- Bridge record: `pr_line_allocations.allocated_qty`
 
-3. Status transitions follow workshop flow only  
-  - PR: `DRAFT -> SUBMITTED -> APPROVED`  
-  - PO: `DRAFT -> SUBMITTED`  
-  - GR: `DRAFT -> POSTED`
+2. GR received qty <= PO line open qty
+
+- Check: `po_lines.qty_received` + new receipt <= `po_lines.qty_ordered`
+- On GR posting, atomically UPDATE `po_lines SET qty_received = qty_received + qty_received`
+- Also UPDATE `pr_lines.qty_received` via allocation chain
+
+3. Status transitions follow workshop flow only
+
+- PR: `DRAFT -> SUBMITTED -> APPROVED`
+- PO: `DRAFT -> SUBMITTED`
+- GR: `DRAFT -> POSTED`
 
 ---
 
 ## 6) Workshop Agenda (5 Hours)
 
 ### Hour 1 — Setup + Baseline Boot
+
 - Clone repo, start PostgreSQL via Docker Compose
 - Apply pre-provided core migration script
 - Configure backend/frontend `.env` and run baseline app
 - Verify Home/Dashboard + PR module are already working
 
 ### Hour 2 — PO Backlog: API + Data Rules
+
 - Implement PO create/submit/detail/open-lines endpoints
 - Implement allocation validation (allocated qty <= PR remaining qty)
 - Keep handlers thin and move rules to PO service
 
 ### Hour 3 — PO Backlog: UI Pages
+
 - Build PO list/create/detail pages on top of baseline navigation
 - Connect pages to PO APIs
 - Validate create-from-approved-PR-line flow
 
 ### Hour 4 — PO-focused Testing + GitHub Review
+
 - Add Jest tests focused on PO rules and status transitions
 - Add Playwright flow for PO pages integrated with baseline PR data
 - Open PR and use Copilot review + code quality checks
 
 ### Hour 5 — Optional Extension + Exploration
+
 - Implement Bookmark feature from GitHub Issue (optional, post-backlog)
 - Demo completed PO backlog
 - GR module left as self-paced exploration using this plan
@@ -383,10 +419,12 @@ erDiagram
 ---
 
 ## 7) Testing Strategy
+
 - Jest for service-level and route validation tests
 - Playwright for PO-focused end-to-end journey on top of baseline PR
 
 Suggested minimum:
+
 1. Jest: reject over-allocation
 2. Jest: reject invalid PO status transition
 3. Playwright: PR baseline data -> PO create -> PO submit -> PO detail assertions
@@ -396,6 +434,7 @@ Suggested minimum:
 ## 8) Local Run Baseline
 
 ### Docker
+
 ```yaml
 services:
   db:
@@ -409,12 +448,14 @@ services:
 ```
 
 ### Backend env
+
 ```env
 PORT=3000
 DATABASE_URL=postgres://workshop:workshop@localhost:5433/procurement_mvp
 ```
 
 ### Frontend env
+
 ```env
 VITE_API_BASE_URL=http://localhost:3000
 ```
@@ -422,6 +463,7 @@ VITE_API_BASE_URL=http://localhost:3000
 ---
 
 ## 9) Copilot Usage by SDLC Phase
+
 1. Requirements: turn broad business asks into strict MVP boundaries
 2. Design: generate schema and endpoint skeletons
 3. Build: scaffold handlers/services/components
@@ -431,6 +473,7 @@ VITE_API_BASE_URL=http://localhost:3000
 ---
 
 ## 10) Done Criteria
+
 - App runs locally with Docker PostgreSQL + Fastify + Vue
 - Baseline Home/Dashboard + PR pages/APIs run without modification
 - PO backlog is implemented (PO list/create/detail + required PO endpoints)

@@ -56,13 +56,7 @@
                 step="1"
                 :value="line.orderQty"
                 :aria-label="`Order quantity for ${line.itemName}`"
-                @input="
-                  updateLine(
-                    index,
-                    'orderQty',
-                    numericValue($event, line.remainingQty),
-                  )
-                "
+                @input="updateLine(index, 'orderQty', numericValue($event))"
               />
             </td>
             <td>
@@ -113,8 +107,8 @@ function updateLine(index, field, value) {
   emit("update-line", { index, field, value });
 }
 
-function numericValue(event, maximum = Number.POSITIVE_INFINITY) {
-  return Math.min(Math.max(Number(event.target.value) || 0, 0), maximum);
+function numericValue(event) {
+  return Math.max(Number(event.target.value) || 0, 0);
 }
 
 function formatAmount(value) {

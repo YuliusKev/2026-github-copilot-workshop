@@ -1,6 +1,7 @@
 import { describe, test, expect, jest } from '@jest/globals';
 import {
   listRequisitions,
+  getRequisitionById,
   getRequisitionOpenLines,
 } from '../../src/services/requisition-service.js';
 
@@ -109,5 +110,74 @@ describe('requisition-service list functions', () => {
     expect(result.openLines).toHaveLength(1);
     expect(result.openLines[0].id).toBe('l-1');
     expect(result.openLines[0].qtyOpenForPo).toBe(3);
+  });
+});
+
+describe('getRequisitionById', () => {
+  test('returns the header and mapped line quantities', async () => {
+    const db = mockDb((sql) => {
+      if (sql.includes('FROM purchase_requisitions')) {
+        return {
+          rows: [{
+            id: 'pr-1',
+            pr_number: 'PR-2026-0001',
+            status: 'APPROVED',
+            requester_name: 'Rina',
+            department_name: 'Ops',
+            title: 'Spare parts',
+            notes: null,
+            needed_by_date: '2026-06-15',
+            created_at: '2026-05-01T10:00:00.000Z',
+            updated_at: '2026-05-01T10:00:00.000Z',
+          }],
+          rowCount: 1,
+        };
+      }
+
+      return {
+        rows: [{
+          id: 'line-1',
+          line_no: 1,
+          item_code: 'PART-1',
+          item_name: 'Spare part',
+          qty_requested: '10',
+          qty_allocated: '4',
+          qty_received: '0',
+          uom: 'PCS',
+          est_unit_price: '1250',
+          site_code: 'JKT',
+          required_date: null,
+          budget_center: 'OPS',
+        }],
+        rowCount: 1,
+      };
+    });
+
+    const result = await getRequisitionById(db, 'pr-1');
+
+    expect(result.id).toBe('pr-1');
+    expect(result.lines).toEqual([{
+      id: 'line-1',
+      lineNo: 1,
+      itemCode: 'PART-1',
+      itemName: 'Spare part',
+      qtyRequested: 10,
+      qtyAllocated: 4,
+      qtyReceived: 0,
+      qtyOpenForPo: 6,
+      uom: 'PCS',
+      estUnitPrice: 1250,
+      siteCode: 'JKT',
+      requiredDate: null,
+      budgetCenter: 'OPS',
+    }]);
+    expect(db.query).toHaveBeenCalledTimes(2);
+  });
+
+  test('returns null without querying lines when requisition is missing', async () => {
+    const db = mockDb(() => ({ rows: [], rowCount: 0 }));
+
+    await expect(getRequisitionById(db, 'missing-id')).resolves.toBeNull();
+    expect(db.query).toHaveBeenCalledTimes(1);
   });
 });

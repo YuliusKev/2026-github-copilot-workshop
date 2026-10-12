@@ -120,6 +120,25 @@ function detailQueryResponses() {
 // ─────────────────────────────────────────────────────────
 
 describe('createPurchaseOrder – payload validation', () => {
+  test.each([null, 'invalid'])('rejects malformed line %p with 422', async (line) => {
+    await expect(createPurchaseOrder(mockDb(null), validPayload({ lines: [line] })))
+      .rejects.toMatchObject({ message: 'lines[0] must be an object', statusCode: 422 });
+  });
+
+  test.each(['invalid', Infinity])('rejects invalid quantity %p with 422', async (qtyOrdered) => {
+    await expect(createPurchaseOrder(mockDb(null), validPayload({
+      lines: [{ ...validPayload().lines[0], qtyOrdered }],
+    }))).rejects.toMatchObject({ message: 'lines[0].qtyOrdered must be greater than 0', statusCode: 422 });
+  });
+
+  test.each(['invalid', Infinity])('rejects invalid unit price %p with 422', async (unitPrice) => {
+    await expect(createPurchaseOrder(mockDb(null), validPayload({
+      lines: [{ ...validPayload().lines[0], unitPrice }],
+    }))).rejects.toMatchObject({
+      message: 'lines[0].unitPrice must be greater than or equal to 0', statusCode: 422,
+    });
+  });
+
   test('rejects when body is null', async () => {
     const db = mockDb(null);
     await expect(createPurchaseOrder(db, null))
@@ -204,6 +223,22 @@ describe('createPurchaseOrder – payload validation', () => {
 // ─────────────────────────────────────────────────────────
 
 describe('createPurchaseOrder – over-allocation guard', () => {
+  test('rejects combined allocations that exceed the same PR line remaining qty', async () => {
+    const client = mockClient(happyPathClientResponses());
+    const db = mockDb(client, detailQueryResponses());
+    const line = { ...validPayload().lines[0], qtyOrdered: 6 };
+
+    await expect(createPurchaseOrder(db, validPayload({ lines: [line, { ...line }] })))
+      .rejects.toMatchObject({
+        message: 'lines[1]: allocation qty 12 exceeds remaining 10',
+        statusCode: 422,
+      });
+
+    expect(client.query).toHaveBeenCalledWith('ROLLBACK');
+    expect(client.query.mock.calls.some(([sql]) => sql.startsWith('INSERT'))).toBe(false);
+    expect(client.release).toHaveBeenCalled();
+  });
+
   test('rejects when allocation qty exceeds PR line remaining qty', async () => {
     const client = mockClient((sql) => {
       if (sql === 'BEGIN' || sql === 'ROLLBACK') return { rows: [], rowCount: 0 };

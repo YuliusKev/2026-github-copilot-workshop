@@ -52,6 +52,10 @@ function validateCreatePayload(payload) {
   for (let i = 0; i < payload.lines.length; i++) {
     const line = payload.lines[i];
 
+    if (!line || typeof line !== 'object') {
+      return `lines[${i}] must be an object`;
+    }
+
     if (!line.prLineId) {
       return `lines[${i}].prLineId is required`;
     }
@@ -60,11 +64,11 @@ function validateCreatePayload(payload) {
       return `lines[${i}] itemCode, itemName, uom, and siteCode are required`;
     }
 
-    if (!Number(line.qtyOrdered) || Number(line.qtyOrdered) <= 0) {
+    if (!Number.isFinite(Number(line.qtyOrdered)) || Number(line.qtyOrdered) <= 0) {
       return `lines[${i}].qtyOrdered must be greater than 0`;
     }
 
-    if (Number(line.unitPrice) < 0) {
+    if (!Number.isFinite(Number(line.unitPrice ?? 0)) || Number(line.unitPrice ?? 0) < 0) {
       return `lines[${i}].unitPrice must be greater than or equal to 0`;
     }
   }
@@ -170,6 +174,8 @@ export async function createPurchaseOrder(db, payload) {
   try {
     await client.query('BEGIN');
 
+    const requestedByPrLine = new Map();
+
     // Lock and validate every referenced PR line
     for (let i = 0; i < payload.lines.length; i++) {
       const line = payload.lines[i];
@@ -199,13 +205,15 @@ export async function createPurchaseOrder(db, payload) {
       }
 
       const remaining = Number(prLine.qty_requested) - Number(prLine.qty_allocated);
-      if (Number(line.qtyOrdered) > remaining) {
+      const requestedQty = (requestedByPrLine.get(line.prLineId) || 0) + Number(line.qtyOrdered);
+      if (requestedQty > remaining) {
         const err = new Error(
-          `lines[${i}]: allocation qty ${line.qtyOrdered} exceeds remaining ${remaining}`
+          `lines[${i}]: allocation qty ${requestedQty} exceeds remaining ${remaining}`
         );
         err.statusCode = 422;
         throw err;
       }
+      requestedByPrLine.set(line.prLineId, requestedQty);
     }
 
     // Generate PO number

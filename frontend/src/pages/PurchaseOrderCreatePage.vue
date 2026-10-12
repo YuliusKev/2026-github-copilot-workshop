@@ -18,17 +18,28 @@
       </div>
     </div>
 
-    <form
-      @submit.prevent="
-        showActionMessage('Draft saved locally. No API call was made.')
-      "
-    >
-      <PurchaseOrderHeaderForm v-model="header" />
-      <PurchaseOrderAllocationTable
-        :lines="lines"
-        @update-line="updateLine"
-        @refresh="showActionMessage('Open PR lines are sample data.')"
-      />
+    <form novalidate @submit.prevent="saveOrder()">
+      <p v-if="errorMessage" class="error action-message" role="alert">
+        {{ errorMessage }}
+      </p>
+      <p v-if="loading" class="muted" role="status">
+        Loading approved PR lines...
+      </p>
+      <fieldset class="po-fields" :disabled="loading || saving || !!savedOrder">
+        <PurchaseOrderHeaderForm v-model="header" />
+        <PurchaseOrderAllocationTable
+          :lines="lines"
+          @update-line="updateLine"
+          @refresh="refreshOpenLines"
+        />
+      </fieldset>
+      <p
+        v-if="!loading && !errorMessage && !lines.length"
+        class="muted"
+        role="status"
+      >
+        No approved PR lines are available for allocation.
+      </p>
 
       <section class="card-panel po-summary" aria-live="polite">
         <div>
@@ -46,15 +57,18 @@
           {{ actionMessage }}
         </p>
         <div class="btn-group">
-          <button class="btn btn-secondary" type="submit">Save As Draft</button>
+          <button
+            class="btn btn-secondary"
+            type="submit"
+            :disabled="loading || saving || !!savedOrder"
+          >
+            Save As Draft
+          </button>
           <button
             class="btn btn-primary"
             type="button"
-            @click="
-              showActionMessage(
-                'PO submission is UI-only. No API call was made.',
-              )
-            "
+            :disabled="loading || saving || savedOrder?.status === 'SUBMITTED'"
+            @click="saveOrder(true)"
           >
             Submit PO
           </button>
@@ -65,91 +79,30 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from "vue";
 import { RouterLink } from "vue-router";
 import PurchaseOrderAllocationTable from "../components/PurchaseOrderAllocationTable.vue";
 import PurchaseOrderHeaderForm from "../components/PurchaseOrderHeaderForm.vue";
+import { usePurchaseOrderCreate } from "../composables/usePurchaseOrderCreate";
 
-const header = ref({
-  vendor: "",
-  neededByDate: "",
-  currency: "IDR",
-  paymentTerms: "",
-  notes: "",
-});
-
-const lines = reactive([
-  {
-    id: "pr-001-1",
-    selected: true,
-    prNo: "PR-001",
-    prLine: 1,
-    itemCode: "ITEM-001",
-    itemName: "Bearing-6205",
-    uom: "PCS",
-    requestedQty: 20,
-    allocatedQty: 5,
-    remainingQty: 15,
-    orderQty: 10,
-    deliveryAddress: "",
-    deliveryDate: "",
-    unitPrice: 150000,
-  },
-  {
-    id: "pr-001-2",
-    selected: true,
-    prNo: "PR-001",
-    prLine: 2,
-    itemCode: "ITEM-009",
-    itemName: "Grease High Temp",
-    uom: "TUBE",
-    requestedQty: 12,
-    allocatedQty: 0,
-    remainingQty: 12,
-    orderQty: 0,
-    deliveryAddress: "",
-    deliveryDate: "",
-    unitPrice: 0,
-  },
-  {
-    id: "pr-004-1",
-    selected: true,
-    prNo: "PR-004",
-    prLine: 1,
-    itemCode: "ITEM-015",
-    itemName: "Bearing-6205",
-    uom: "PAIR",
-    requestedQty: 50,
-    allocatedQty: 10,
-    remainingQty: 40,
-    orderQty: 20,
-    deliveryAddress: "",
-    deliveryDate: "",
-    unitPrice: 32000,
-  },
-]);
-
-const actionMessage = ref("");
-const selectedLines = computed(() => lines.filter((line) => line.selected));
-const estimatedTotal = computed(() =>
-  selectedLines.value.reduce(
-    (total, line) => total + line.orderQty * line.unitPrice,
-    0,
-  ),
-);
-
-function updateLine({ index, field, value }) {
-  Object.assign(lines[index], { [field]: value });
-}
+const {
+  header,
+  lines,
+  loading,
+  saving,
+  errorMessage,
+  actionMessage,
+  savedOrder,
+  selectedLines,
+  estimatedTotal,
+  refreshOpenLines,
+  updateLine,
+  saveOrder,
+} = usePurchaseOrderCreate();
 
 function formatAmount(value) {
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(
     value,
   );
-}
-
-function showActionMessage(message) {
-  actionMessage.value = message;
 }
 </script>
 
@@ -157,6 +110,12 @@ function showActionMessage(message) {
 .purchase-order-page {
   max-width: 1440px;
   margin: 0 auto;
+}
+.po-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
 }
 .po-summary {
   display: flex;
