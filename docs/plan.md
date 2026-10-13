@@ -17,9 +17,9 @@ Workshop implementation strategy:
 
 1. Core schema migration + sample seed are pre-provided in repository and bootstrapped via Docker init for participants.
 2. Home/Dashboard + PR module (list/create/detail + PR APIs) are prebuilt and working.
-3. Participant backlog focus is PO module only (PO list/create/detail + PO APIs + PO validations).
-4. GR module is not implemented during workshop and is left for further exploration.
-5. Bookmark feature is post-backlog and practiced via GitHub Issue-driven development.
+3. Participant backlog includes the PO module (PO list/create/detail + PO APIs + PO validations) and the approved GR module extension (GR list/create/detail + GR APIs + receipt validations).
+4. Preserve the prebuilt PR flow while implementing the PO-to-GR fulfillment path.
+5. The optional PO bookmark feature is post-backlog and practiced via GitHub Issue-driven development.
 6. DB bootstrap is prepared for Windows/macOS/Linux hosts by using POSIX `sh` init script + LF normalization for `.sh` and `.sql` files.
 
 DB bootstrap command (participant-ready):
@@ -152,10 +152,14 @@ Workshop status: prebuilt in baseline.
 - `POST /api/purchase-orders/:id/submit`
 - `GET /api/purchase-orders/:id`
 - `GET /api/purchase-orders/:id/open-lines`
+- `POST /api/purchase-orders/:id/bookmark` (optional post-backlog extension)
+- `DELETE /api/purchase-orders/:id/bookmark` (optional post-backlog extension)
 
 Workshop status: participant implementation backlog (primary focus).
 
-The PO list page uses `GET /api/purchase-orders`; the detail page uses `GET /api/purchase-orders/:id` and submits draft orders through `POST /api/purchase-orders/:id/submit`.
+The PO list page uses `GET /api/purchase-orders`; the detail page uses `GET /api/purchase-orders/:id` and submits draft orders through `POST /api/purchase-orders/:id/submit`. PO list and detail responses include `isBookmarked`; `GET /api/purchase-orders?bookmarked=true` returns only bookmarked orders.
+
+The optional PO bookmark extension uses idempotent `POST /api/purchase-orders/:id/bookmark` and `DELETE /api/purchase-orders/:id/bookmark` requests. It stores a shared bookmark flag for all viewers; bookmarking PRs or GRs and per-user state are out of scope.
 
 Create PO integration:
 
@@ -169,11 +173,12 @@ Create PO integration:
 
 ### Goods Receipt
 
+- `GET /api/goods-receipts`
 - `POST /api/goods-receipts`
 - `POST /api/goods-receipts/:id/post`
 - `GET /api/goods-receipts/:id`
 
-Workshop status: out of implementation scope (further exploration).
+Workshop status: approved implementation extension. GR creation requires a submitted PO and positive quantities within each PO line's open quantity. Partial receipts are supported; posting revalidates open quantities and atomically updates PO and linked PR received quantities. A receipt transitions from `DRAFT` to `POSTED`.
 
 ---
 
@@ -413,24 +418,27 @@ erDiagram
 - Add Playwright flow for PO pages integrated with baseline PR data
 - Open PR and use Copilot review + code quality checks
 
-### Hour 5 — Optional Extension + Exploration
+### Hour 5 — Goods Receipt Extension + Optional Bookmark
 
-- Implement Bookmark feature from GitHub Issue (optional, post-backlog)
-- Demo completed PO backlog
-- GR module left as self-paced exploration using this plan
+- Implement the Goods Receipt list/create/detail flow and APIs against submitted POs
+- Add focused receipt quantity and status-transition tests
+- Implement the PO Bookmark feature from a GitHub Issue if time allows
+- Demo the PR -> PO -> GR flow
 
 ---
 
 ## 7) Testing Strategy
 
 - Jest for service-level and route validation tests
-- Playwright for PO-focused end-to-end journey on top of baseline PR
+- Playwright for PO and GR end-to-end journeys on top of baseline PR
 
 Suggested minimum:
 
 1. Jest: reject over-allocation
 2. Jest: reject invalid PO status transition
 3. Playwright: PR baseline data -> PO create -> PO submit -> PO detail assertions
+4. Jest: reject receipt quantities above PO open quantity and invalid GR status transitions
+5. Playwright: submitted PO -> partial GR create -> GR post -> remaining PO quantity assertions
 
 ---
 
@@ -481,5 +489,7 @@ VITE_API_BASE_URL=http://localhost:3000
 - Baseline Home/Dashboard + PR pages/APIs run without modification
 - PO backlog is implemented (PO list/create/detail + required PO endpoints)
 - PO quantity validations are enforced
-- Jest and Playwright each run at least one PO-focused meaningful test
-- Bookmark feature is captured as a GitHub Issue (or implemented if time allows)
+- GR list/create/detail and list/create/detail/post APIs are implemented
+- Partial GR quantities are accumulated without exceeding PO ordered quantities
+- Jest and Playwright each run meaningful PO- and GR-focused tests
+- Optional PO bookmark feature is captured as a GitHub Issue (or implemented if time allows)

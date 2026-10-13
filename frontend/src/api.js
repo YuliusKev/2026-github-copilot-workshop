@@ -53,7 +53,12 @@ export const api = {
       method: 'POST',
     }),
   getRequisitionOpenLines: (id) => apiFetch(`/api/requisitions/${id}/open-lines`),
-  listPurchaseOrders: () => apiFetch('/api/purchase-orders'),
+  listPurchaseOrders: (bookmarkedOnly = false) =>
+    apiFetch(`/api/purchase-orders${bookmarkedOnly ? '?bookmarked=true' : ''}`),
+  bookmarkPurchaseOrder: (id) =>
+    apiFetch(`/api/purchase-orders/${id}/bookmark`, { method: 'POST' }),
+  removePurchaseOrderBookmark: (id) =>
+    apiFetch(`/api/purchase-orders/${id}/bookmark`, { method: 'DELETE' }),
   createPurchaseOrder: (payload) =>
     apiFetch('/api/purchase-orders', {
       method: 'POST',
@@ -63,4 +68,13 @@ export const api = {
     apiFetch(`/api/purchase-orders/${id}/submit`, { method: 'POST' }),
   getPurchaseOrder: (id) => apiFetch(`/api/purchase-orders/${id}`),
   getPurchaseOrderOpenLines: (id) => apiFetch(`/api/purchase-orders/${id}/open-lines`),
+  listGoodsReceipts: () => apiFetch('/api/goods-receipts'),
+  createGoodsReceipt: (payload) =>
+    apiFetch('/api/goods-receipts', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  getGoodsReceipt: (id) => apiFetch(`/api/goods-receipts/${id}`),
+  postGoodsReceipt: (id) =>
+    apiFetch(`/api/goods-receipts/${id}/post`, { method: 'POST' }),
 };

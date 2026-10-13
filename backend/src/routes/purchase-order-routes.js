@@ -3,6 +3,7 @@ import {
   getOpenPoLines,
   getPurchaseOrderById,
   listPurchaseOrders,
+  setPurchaseOrderBookmarked,
   submitPurchaseOrder,
 } from '../services/purchase-order-service.js';
 
@@ -18,8 +19,40 @@ export default async function purchaseOrderRoutes(fastify) {
   fastify.get('/api/purchase-orders', {
     schema: { summary: 'List purchase orders', tags: ['Purchase Orders'] },
   }, async (request, reply) => {
-    const items = await listPurchaseOrders(fastify.db);
+    const items = await listPurchaseOrders(fastify.db, request.query.bookmarked === 'true');
     return { items };
+  });
+
+  fastify.post('/api/purchase-orders/:id/bookmark', {
+    schema: {
+      summary: 'Bookmark a purchase order',
+      tags: ['Purchase Orders'],
+      params: idParamsSchema,
+    },
+  }, async (request, reply) => {
+    const result = await setPurchaseOrderBookmarked(fastify.db, request.params.id, true);
+    if (!result) {
+      reply.code(404);
+      return { message: 'Purchase order not found' };
+    }
+
+    return result;
+  });
+
+  fastify.delete('/api/purchase-orders/:id/bookmark', {
+    schema: {
+      summary: 'Remove a purchase order bookmark',
+      tags: ['Purchase Orders'],
+      params: idParamsSchema,
+    },
+  }, async (request, reply) => {
+    const result = await setPurchaseOrderBookmarked(fastify.db, request.params.id, false);
+    if (!result) {
+      reply.code(404);
+      return { message: 'Purchase order not found' };
+    }
+
+    return result;
   });
 
   fastify.post('/api/purchase-orders', {

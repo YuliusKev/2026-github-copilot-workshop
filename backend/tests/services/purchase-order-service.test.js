@@ -3,6 +3,7 @@ import {
   createPurchaseOrder,
   listPurchaseOrders,
   getOpenPoLines,
+  setPurchaseOrderBookmarked,
   submitPurchaseOrder,
 } from '../../src/services/purchase-order-service.js';
 
@@ -498,10 +499,56 @@ describe('purchase-order-service list functions', () => {
         poNumber: 'PO-2026-0001',
         status: 'DRAFT',
         vendorName: 'PT Maju',
+        isBookmarked: false,
         createdAt: '2026-05-01T10:00:00.000Z',
         updatedAt: '2026-05-01T10:00:00.000Z',
       },
     ]);
+  });
+
+  test('listPurchaseOrders filters bookmarked POs when requested', async () => {
+    const db = {
+      query: jest.fn(() => ({
+        rows: [{
+          id: 'po-1',
+          po_number: 'PO-2026-0001',
+          status: 'DRAFT',
+          vendor_name: 'PT Maju',
+          is_bookmarked: true,
+        }],
+      })),
+    };
+
+    const result = await listPurchaseOrders(db, true);
+
+    expect(db.query.mock.calls[0][0]).toContain('WHERE is_bookmarked = TRUE');
+    expect(result).toEqual([
+      expect.objectContaining({ id: 'po-1', isBookmarked: true }),
+    ]);
+  });
+
+  test('setPurchaseOrderBookmarked returns the updated state', async () => {
+    const db = {
+      query: jest.fn(() => ({
+        rows: [{ id: 'po-1', is_bookmarked: true }],
+        rowCount: 1,
+      })),
+    };
+
+    await expect(setPurchaseOrderBookmarked(db, 'po-1', true)).resolves.toEqual({
+      id: 'po-1',
+      isBookmarked: true,
+    });
+    expect(db.query).toHaveBeenCalledWith(
+      expect.stringContaining('RETURNING id, is_bookmarked'),
+      ['po-1', true]
+    );
+  });
+
+  test('setPurchaseOrderBookmarked returns null when the PO is missing', async () => {
+    const db = { query: jest.fn(() => ({ rows: [], rowCount: 0 })) };
+
+    await expect(setPurchaseOrderBookmarked(db, 'missing-id', true)).resolves.toBeNull();
   });
 
   test('getOpenPoLines returns null when PO not found', async () => {

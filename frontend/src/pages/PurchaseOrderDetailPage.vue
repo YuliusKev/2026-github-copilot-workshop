@@ -13,6 +13,25 @@
           </p>
         </div>
       </div>
+      <PurchaseOrderBookmarkButton
+        v-if="purchaseOrder"
+        :purchase-order-id="purchaseOrder.id"
+        :is-bookmarked="purchaseOrder.isBookmarked"
+        @updated="purchaseOrder.isBookmarked = $event"
+      />
+      <RouterLink
+        v-if="
+          purchaseOrder?.status === 'SUBMITTED' &&
+          purchaseOrder.lines?.some((line) => line.qtyOpenForGr > 0)
+        "
+        :to="{
+          name: 'goods-receipts-create',
+          query: { poId: purchaseOrder.id },
+        }"
+        class="btn btn-outline"
+      >
+        Receive Goods
+      </RouterLink>
       <button
         v-if="purchaseOrder?.status === 'DRAFT'"
         class="btn btn-primary"
@@ -98,6 +117,7 @@
 import { ref, watch } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import { api } from "../api";
+import PurchaseOrderBookmarkButton from "../components/PurchaseOrderBookmarkButton.vue";
 
 const route = useRoute();
 const purchaseOrder = ref(null);

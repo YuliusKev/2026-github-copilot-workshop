@@ -15,11 +15,11 @@ In this workshop, we focus on using a prebuilt baseline and add a backlog sprint
 
 Reference plan: `docs/plan.md`.
 
-## Scope Constraints (Strict)
+## Scope Constraints
 
 - Baseline provided in repo: database schema + Home/Dashboard + PR module (list/create/detail + required PR APIs).
-- Participant implementation scope: PO module only (PO list/create/detail + PO APIs + PO validations).
-- GR module is out of implementation scope during the workshop and treated as further exploration.
+- Participant implementation scope: PO module (PO list/create/detail + PO APIs + PO validations) and the approved GR module extension (GR list/create/detail + GR APIs + receipt validations).
+- Preserve the prebuilt PR flow while completing the PO-to-GR flow.
 - Keep business scope minimal and teachable.
 - Avoid enterprise-only features (SSO, workflow engine, reporting, notifications, advanced compliance).
 - Prefer clarity and small modules over abstraction-heavy architecture.
@@ -43,7 +43,9 @@ Reference plan: `docs/plan.md`.
   - `GET /api/purchase-orders/:id`
   - `GET /api/purchase-orders/:id/open-lines`
 - Enforce PO rule: allocation qty <= PR line remaining qty.
-- GR endpoints/rules can be left untouched during workshop implementation.
+- Implement GR endpoints listed in `docs/plan.md`.
+- Enforce GR rule: receipt qty <= PO line open qty, allow partial receipts, and accumulate posted received quantities.
+- Posting transitions a receipt from `DRAFT` to `POSTED` and updates PO/linked PR quantities atomically.
 
 ## Code Style Guidance
 
@@ -54,16 +56,16 @@ Reference plan: `docs/plan.md`.
 
 ## Implementation Checklist
 
-- [ ] Keep changes within the PO backlog; preserve the baseline PR flow and leave GR untouched.
-- [ ] Validate inputs and enforce PO business rules in service functions; return clear errors.
-- [ ] Add focused tests for success paths, invalid transitions, and over-allocation.
+- [ ] Keep changes within the PO and GR backlog; preserve the baseline PR flow.
+- [ ] Validate inputs and enforce PO/GR business rules in service functions; return clear errors.
+- [ ] Add focused tests for success paths, invalid transitions, over-allocation, and over-receipt.
 - [ ] Run the relevant Jest and Playwright tests, and report any checks not run.
 - [ ] Update documentation when behavior, API contracts, setup, or scope changes; keep `docs/plan.md` consistent with the implemented API.
 
 ## Testing Expectations
 
-- Add focused Jest tests for PO business validations (especially over-allocation and status transition).
-- Add Playwright coverage focused on PO pages/flow integrated with existing baseline PR data.
+- Add focused Jest tests for PO and GR business validations (especially over-allocation, over-receipt, and status transitions).
+- Add Playwright coverage for PO and GR flows integrated with baseline PR data.
 - Do not over-invest in test framework complexity.
 
 ## User Interface Guidelines

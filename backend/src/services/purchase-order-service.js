@@ -8,6 +8,7 @@ function mapHeader(row) {
     poNumber: row.po_number,
     status: row.status,
     vendorName: row.vendor_name,
+    isBookmarked: Boolean(row.is_bookmarked),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -78,14 +79,35 @@ function validateCreatePayload(payload) {
 
 // ── Queries ──────────────────────────────────────────────
 
-export async function listPurchaseOrders(db) {
+export async function listPurchaseOrders(db, bookmarkedOnly = false) {
+  const filter = bookmarkedOnly ? 'WHERE is_bookmarked = TRUE' : '';
   const { rows } = await db.query(
-    `SELECT id, po_number, status, vendor_name, created_at, updated_at
+    `SELECT id, po_number, status, vendor_name, is_bookmarked, created_at, updated_at
      FROM purchase_orders
+     ${filter}
      ORDER BY created_at DESC`
   );
 
   return rows.map(mapHeader);
+}
+
+export async function setPurchaseOrderBookmarked(db, id, isBookmarked) {
+  const result = await db.query(
+    `UPDATE purchase_orders
+     SET is_bookmarked = $2, updated_at = NOW()
+     WHERE id = $1
+     RETURNING id, is_bookmarked`,
+    [id, isBookmarked]
+  );
+
+  if (result.rowCount === 0) {
+    return null;
+  }
+
+  return {
+    id: result.rows[0].id,
+    isBookmarked: Boolean(result.rows[0].is_bookmarked),
+  };
 }
 
 export async function getPurchaseOrderById(db, id) {

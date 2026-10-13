@@ -8,6 +8,14 @@ Included: PO list/create/detail UI, the required PO APIs, PO allocation and stat
 
 Excluded: GR endpoints, pages, rules, migrations, and test flows; broad PR redesign; enterprise workflow features. Treat GR as future exploration only.
 
+## Existing Database Volumes
+
+The PO bookmark migration runs automatically when Docker initializes a fresh database. For an existing volume, start the database and apply the migration once; the SQL is safe to repeat:
+
+```bash
+rtk docker compose exec -T db psql -v ON_ERROR_STOP=1 -U workshop -d procurement_mvp -f /workspace/db/migrations/002_purchase_order_bookmarks.sql
+```
+
 ## Ordered Checklist
 
 ### 1. Verify the baseline

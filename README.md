@@ -5,9 +5,9 @@ Hands-on 5-hour workshop to build a web-based procurement MVP and practice Copil
 ## Workshop Scope
 
 - Baseline provided in repo: database schema + Home/Dashboard + PR module (list/create/detail + PR APIs)
-- Participant implementation backlog: PO module only (list/create/detail + PO APIs + PO validations)
-- GR module: out of implementation scope during workshop (further exploration)
-- Optional extension: bookmark feature (`PR`, `PO`, `GR`) as post-backlog exercise
+- Participant implementation backlog: PO module (list/create/detail + PO APIs + PO validations) and the approved GR extension (list/create/detail + GR APIs + receipt validations)
+- GR receipt posting supports partial receipts, rechecks PO open quantities, and updates received quantities atomically
+- Optional extension: shared PO bookmarks as a post-backlog exercise; PR/GR bookmarks and per-user state are out of scope
 
 Canonical workshop document: [docs/plan.md](docs/plan.md)
 
@@ -39,6 +39,7 @@ docker compose up -d db
 The PostgreSQL container now initializes the workshop baseline automatically:
 
 - Runs schema migration: `db/migrations/001_init_procurement_mvp.sql`
+- Runs PO bookmark migration: `db/migrations/002_purchase_order_bookmarks.sql`
 - Runs sample seed data: `db/seeds/002_seed_procurement_mvp.sql`
 - Uses Docker init script: `docker/postgres/init/00-init-mvp-db.sh`
 
