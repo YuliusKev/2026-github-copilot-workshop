@@ -147,12 +147,15 @@ Workshop status: prebuilt in baseline.
 
 ### Purchase Order
 
+- `GET /api/purchase-orders`
 - `POST /api/purchase-orders`
 - `POST /api/purchase-orders/:id/submit`
 - `GET /api/purchase-orders/:id`
 - `GET /api/purchase-orders/:id/open-lines`
 
 Workshop status: participant implementation backlog (primary focus).
+
+The PO list page uses `GET /api/purchase-orders`; the detail page uses `GET /api/purchase-orders/:id` and submits draft orders through `POST /api/purchase-orders/:id/submit`.
 
 Create PO integration:
 

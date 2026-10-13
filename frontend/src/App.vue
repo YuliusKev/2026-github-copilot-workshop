@@ -9,9 +9,7 @@
         <RouterLink to="/requisitions" :class="{ active: isRequisitions }"
           >Purchase Requisitions</RouterLink
         >
-        <RouterLink
-          to="/purchase-orders/new"
-          :class="{ active: isPurchaseOrders }"
+        <RouterLink to="/purchase-orders" :class="{ active: isPurchaseOrders }"
           >Purchase Orders</RouterLink
         >
       </nav>

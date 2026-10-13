@@ -1,0 +1,10 @@
+#!/bin/sh
+
+printf '%s\n' 'Running project tests before push...'
+if npm test; then
+  printf '%s\n' 'Tests passed; push may continue.'
+else
+  test_status=$?
+  printf '%s\n' 'Tests failed; push blocked.' >&2
+  exit "$test_status"
+fi

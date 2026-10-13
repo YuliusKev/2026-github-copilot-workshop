@@ -3,11 +3,14 @@ import { flushPromises, mount } from '@vue/test-utils';
 import RequisitionCreatePage from '../pages/RequisitionCreatePage.vue';
 import RequisitionListPage from '../pages/RequisitionListPage.vue';
 import PurchaseOrderCreatePage from '../pages/PurchaseOrderCreatePage.vue';
+import PurchaseOrderListPage from '../pages/PurchaseOrderListPage.vue';
+import PurchaseOrderDetailPage from '../pages/PurchaseOrderDetailPage.vue';
 import { api } from '../api';
 
 vi.mock('vue-router', () => ({
   RouterLink: { template: '<a><slot /></a>' },
   useRouter: () => ({ push: vi.fn() }),
+  useRoute: () => ({ params: { id: 'po-1' } }),
 }));
 
 vi.mock('../api', () => ({
@@ -15,6 +18,8 @@ vi.mock('../api', () => ({
     listRequisitions: vi.fn(),
     createRequisition: vi.fn(),
     getRequisitionOpenLines: vi.fn(),
+    listPurchaseOrders: vi.fn(),
+    getPurchaseOrder: vi.fn(),
     createPurchaseOrder: vi.fn(),
     submitPurchaseOrder: vi.fn(),
   },
@@ -176,5 +181,72 @@ describe('purchase order create page', () => {
     await wrapper.get('.refresh-button').trigger('click');
     await flushPromises();
     expect(wrapper.text()).toContain('No approved PR lines are available');
+  });
+});
+
+describe('purchase order list and detail pages', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('renders purchase orders returned by the list API', async () => {
+    api.listPurchaseOrders.mockResolvedValue({
+      items: [{
+        id: 'po-1',
+        poNumber: 'PO-2026-0001',
+        vendorName: 'PT Supplier Jaya',
+        status: 'DRAFT',
+        createdAt: '2026-06-15T08:00:00.000Z',
+      }],
+    });
+
+    const wrapper = mount(PurchaseOrderListPage);
+    await flushPromises();
+
+    expect(api.listPurchaseOrders).toHaveBeenCalledOnce();
+    expect(wrapper.text()).toContain('PO-2026-0001');
+    expect(wrapper.text()).toContain('PT Supplier Jaya');
+    expect(wrapper.text()).toContain('DRAFT');
+    expect(wrapper.text()).toContain('2026-06-15');
+  });
+
+  it('renders PO line allocations and submits a draft', async () => {
+    const purchaseOrder = {
+      id: 'po-1',
+      poNumber: 'PO-2026-0001',
+      vendorName: 'PT Supplier Jaya',
+      status: 'DRAFT',
+      lines: [{
+        id: 'po-line-1',
+        lineNo: 1,
+        itemCode: 'PART-1',
+        itemName: 'Spare part',
+        qtyOrdered: 3,
+        qtyReceived: 1,
+        qtyOpenForGr: 2,
+        uom: 'PCS',
+        unitPrice: 1250,
+        siteCode: 'WH-JKT',
+        requiredDate: '2026-06-20',
+        allocations: [{ prNumber: 'PR-2026-0001', allocatedQty: 3 }],
+      }],
+    };
+    api.getPurchaseOrder.mockResolvedValue(purchaseOrder);
+    api.submitPurchaseOrder.mockResolvedValue({ ...purchaseOrder, status: 'SUBMITTED' });
+
+    const wrapper = mount(PurchaseOrderDetailPage);
+    await flushPromises();
+
+    expect(api.getPurchaseOrder).toHaveBeenCalledExactlyOnceWith('po-1');
+    expect(wrapper.get('input[disabled]').element.value).toBe('PO-2026-0001');
+    expect(wrapper.findAll('input[disabled]')[1].element.value).toBe('PT Supplier Jaya');
+    expect(wrapper.text()).toContain('Spare part');
+    expect(wrapper.text()).toContain('PR-2026-0001 (3)');
+    await wrapper.get('button').trigger('click');
+    await flushPromises();
+
+    expect(api.submitPurchaseOrder).toHaveBeenCalledExactlyOnceWith('po-1');
+    expect(wrapper.text()).toContain('SUBMITTED');
+    expect(wrapper.find('button').exists()).toBe(false);
   });
 });

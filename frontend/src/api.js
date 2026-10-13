@@ -53,6 +53,7 @@ export const api = {
       method: 'POST',
     }),
   getRequisitionOpenLines: (id) => apiFetch(`/api/requisitions/${id}/open-lines`),
+  listPurchaseOrders: () => apiFetch('/api/purchase-orders'),
   createPurchaseOrder: (payload) =>
     apiFetch('/api/purchase-orders', {
       method: 'POST',

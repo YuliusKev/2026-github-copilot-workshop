@@ -1,6 +1,6 @@
 # Project Progress
 
-**Snapshot date:** 2026-10-12
+**Snapshot date:** 2026-10-13
 
 ## Current State
 
@@ -10,9 +10,11 @@ The baseline Purchase Requisition flow is implemented: a PR-based dashboard, req
 
 The [Purchase Order service](../backend/src/services/purchase-order-service.js) implements listing, creation from approved PR lines, submission, detail reads, and open-for-receipt line reads. Creation validates required fields, malformed line entries, finite positive quantities, and finite nonnegative prices. It uses a database transaction and row locks, rejects unapproved or missing PR lines, and checks cumulative requested quantities when the same PR line ID appears multiple times. Creation inserts PO lines and allocation records and updates PR allocated quantities atomically. Business-rule violations return `422` with clear messages; PO submission permits `DRAFT -> SUBMITTED` only.
 
-The [Create PO page](../frontend/src/pages/PurchaseOrderCreatePage.vue) at `/purchase-orders/new` is integrated with the backend and preserves the generated Figma header and allocation components. Its [composable](../frontend/src/composables/usePurchaseOrderCreate.js) loads open lines from approved PRs, supports selection and quantity/price entry, calculates totals, refreshes remaining quantities while retaining inputs, and displays loading, empty, success, and error states. Save As Draft creates a PO; Submit PO creates a draft if needed and submits it. Submission retries reuse the saved draft rather than creating another PO. Fields are locked after saving because there is no update endpoint.
+The [PO create page](../frontend/src/pages/PurchaseOrderCreatePage.vue) at `/purchase-orders/new` is integrated with the backend and uses the existing header and allocation components. Its [composable](../frontend/src/composables/usePurchaseOrderCreate.js) loads open lines from approved PRs, supports selection and quantity/price entry, calculates totals, refreshes remaining quantities while retaining inputs, and displays loading, empty, success, and error states. Save As Draft creates a PO; Submit PO creates a draft if needed and submits it. Submission retries reuse the saved draft rather than creating another PO. Fields are locked after saving because there is no update endpoint.
 
-The [API client](../frontend/src/api.js) exposes PO create, submit, detail, and open-line methods and preserves HTTP status codes on errors. The create page uses create/submit directly; detail/open-line methods are available for future views. PO list and detail pages/routes are not implemented, and the client has no PO list method. No Goods Receipt API or UI flow is registered; GR remains outside workshop implementation scope.
+The PO list at `/purchase-orders` loads headers from `GET /api/purchase-orders`, links each PO to its detail, and links to creation. The PO detail at `/purchase-orders/:id` displays the vendor, status, lines, received/open quantities, and PR allocations from `GET /api/purchase-orders/:id`; draft POs can be submitted from this page. Both pages show API errors and appropriate loading or empty states. The shared navigation links to the PO list. The detail table scrolls horizontally on narrow screens.
+
+The [API client](../frontend/src/api.js) exposes PO list, create, submit, detail, and open-line methods and preserves HTTP status codes on errors. The list page uses list; create uses create/submit; detail uses detail/submit. The open-lines endpoint is available for future GR work but is not used by the current PO pages. No Goods Receipt API or UI flow is registered; GR remains outside workshop implementation scope.
 
 ## Frontend Routes
 
@@ -24,7 +26,9 @@ The [router](../frontend/src/router/index.js) currently registers:
 | `/requisitions`        | PR list.                                          |
 | `/requisitions/new`    | PR create.                                        |
 | `/requisitions/:id`    | PR detail with submit/approve flow.               |
+| `/purchase-orders`     | PO list with links to details and creation.       |
 | `/purchase-orders/new` | API-backed PO create/save/submit.                 |
+| `/purchase-orders/:id` | PO detail with draft submission.                  |
 
 ## Purchase Order API
 
@@ -44,35 +48,35 @@ Creation accepts `vendorName` and a nonempty `lines` array. Each line requires `
 
 Examples of rule errors are `lines[0]: allocation qty 3 exceeds remaining 2` and `Only DRAFT purchase order can be submitted`. The server remains authoritative when remaining quantities change after the page loads.
 
-The [plan](plan.md) lists the four required PO endpoints; the implemented list endpoint additionally supports the pending PO list workflow. There are no PO update/delete endpoints.
+There are no PO update/delete endpoints. Saved drafts can be reopened from the list and reviewed or submitted on their detail page, but their fields cannot be edited.
 
 ## Tests and Gaps
 
 - [Backend PO service tests](../backend/tests/services/purchase-order-service.test.js) cover malformed/numeric input, approved-PR checks, individual and cumulative over-allocation, exact remaining quantity, rollback/release, creation, listing, open lines, and submission status transitions. PR service tests also exist.
-- [Frontend page tests](../frontend/src/__tests__/pages.test.js) cover baseline PR rendering and API-backed PO loading, payload mapping, draft creation, direct submission, retry reuse, local validation, stale server errors, refresh, loading failures, and empty results. [Component tests](../frontend/src/__tests__/components.test.js) cover header updates and allocation inputs.
-- [Playwright PO specs](../tests/e2e/purchase-order-create.spec.js) exercise real PR creation/approval and PO save/submit, HTTP `422` allocation/transition errors, detail/open-line reads, exact remaining quantity, and mobile PO bounds/table scrolling. They require running frontend, API, PostgreSQL, and Chromium. Dedicated test records remain in the local database; existing requisitions are not modified.
-- Dedicated route-level unit tests are still absent; Playwright covers selected HTTP contracts rather than every route/error case.
+- [Frontend page tests](../frontend/src/__tests__/pages.test.js) cover baseline PR rendering, PO list/detail rendering and draft submission, plus PO create payload mapping, draft creation, direct submission, retry reuse, local validation, stale server errors, refresh, and loading/empty states. [Component tests](../frontend/src/__tests__/components.test.js) cover header updates and allocation inputs.
+- [Playwright PO specs](../tests/e2e/purchase-order-create.spec.js) exercise real PR creation/approval and PO save/submit, HTTP `422` allocation/transition errors, API detail/open-line reads, exact remaining quantity, and mobile PO create bounds/table scrolling. They require running frontend, API, PostgreSQL, and Chromium. Dedicated test records remain in the local database; existing requisitions are not modified. The browser flow does not yet visit the PO list or detail pages.
+- Dedicated route-level unit tests are absent; Playwright covers selected HTTP contracts rather than every route/error case.
 - Currency, payment terms, and notes remain in the generated UI but are not persisted by the current PO schema/API.
-- Saved draft state is held in memory on the create page; there is no PO detail route to reopen a draft after reload.
+- Saved drafts can be reopened and submitted from PO detail, but there is no PO update endpoint or edit workflow.
 - Existing shared navigation overflows at a narrow mobile viewport. PO-specific layout checks pass; global navigation responsiveness remains a separate gap.
 
 ## Latest Verification
 
-The latest executed checks from the preceding integration work on 2026-10-12 are listed below. They were not rerun for this documentation-only update; this snapshot was checked against the current source files.
+Checks run against the current source state on 2026-10-13:
 
-| Check                                                                                            | Most Recent Result                  |
-| ------------------------------------------------------------------------------------------------ | ----------------------------------- |
-| `rtk npm --prefix backend test -- --runInBand tests/services/purchase-order-service.test.js`     | 30 Jest tests passed.               |
-| `rtk npm --prefix frontend test -- src/__tests__/pages.test.js src/__tests__/components.test.js` | 13 Vitest tests passed.             |
-| `rtk npm run test:e2e -- tests/e2e/purchase-order-create.spec.js --workers=1`                    | 2 Chromium Playwright tests passed. |
-| `rtk npm --prefix frontend run build`                                                            | Production build passed.            |
+| Check                                                                                        | Most Recent Result                                                                            |
+| -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `rtk npm --prefix backend test -- --runInBand tests/services/purchase-order-service.test.js` | 30 Jest tests passed.                                                                         |
+| `rtk npm --prefix frontend test`                                                             | 15 Vitest tests passed.                                                                       |
+| `rtk npm --prefix frontend run build`                                                        | Production build passed.                                                                      |
+| `rtk npm run test:e2e -- tests/e2e/purchase-order-create.spec.js --workers=1`                | Not rerun for this snapshot; the preceding 2026-10-12 record reports 2 Chromium tests passed. |
 
 These results do not represent a full backend-suite or coverage run.
 
 ## Next Work
 
-1. Add PO list/detail pages and routes, the missing list API client method, and navigation to saved POs.
-2. Add focused route tests for response shapes, status codes, missing records, and invalid transitions not already covered by the browser flow.
-3. Connect approved PR detail to PO creation with relevant PR context.
-4. Resolve shared mobile navigation overflow separately; preserve baseline design tokens and generated PO components.
+1. Add Playwright coverage that visits the PO list and detail UI, including a saved draft submission from detail.
+2. Add focused route tests for response shapes, status codes, missing records, and invalid transitions not already covered by service tests or the browser flow.
+3. Connect approved PR detail to PO creation with relevant PR context, if this remains in the workshop acceptance scope.
+4. Resolve shared mobile navigation overflow separately; preserve baseline design tokens and existing PO components.
 5. Keep GR work deferred as specified by the workshop scope.
